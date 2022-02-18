@@ -1,0 +1,44 @@
+.catalogue {
+  &-item {
+    border-bottom: 1px solid var(--border);
+    color: var(--primary);
+    display: inline-block;
+    padding: 2rem 0;
+    width: 100%;
+
+    &:hover .catalogue-line,
+    &:focus .catalogue-line {
+      width: 5rem;
+    }
+
+    &:last-child {
+      border: 0;
+    }
+  }
+
+  &-time {
+    color: var(--tertiary);
+    font-family: $roboto;
+    letter-spacing: .5px;
+  }
+
+  &-title {
+    color: var(--primary);
+    display: block;
+    font-family: $roboto;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin: .5rem 0;
+  }
+
+  &-line {
+    @include transition(all .3s ease-out);
+    border-top: .15rem solid var(--primary);
+    display: block;
+    width: 3rem;
+  }
+
+  &-brief {
+    color: var(--secondary);
+  }
+}

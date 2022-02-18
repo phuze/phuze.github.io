@@ -1,0 +1,27 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if page.title == "Home" %}
+    <meta name="description" content="{{ site.description }}">
+    {% endif %}
+
+    <title>
+    {% if page.title == "Home" %}
+        {{ site.title }}
+    {% else %}
+        {{ page.title }}
+    {% endif %}
+    </title>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
+    {% if page.title != 404 %}
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
+    {% endif %}
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ "/assets/favicon.png" | relative_url }}">
+
+    <!-- RSS -->
+    {% feed_meta %}
+</head>

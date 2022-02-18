@@ -1,0 +1,73 @@
+.pagination {
+  border-top: .5px solid var(--border);
+  font-family: $roboto;
+  padding-top: 2rem;
+  position: relative;
+  text-align: center;
+
+  span {
+    color: var(--primary);
+    font-size: 1.1rem;
+  }
+
+  a {
+    color: var(--theme);
+    font-size: 16px;
+    background: var(--primary);
+    border-radius: calc(36px/2);
+    padding: 8px 16px;
+  }
+
+  .top {
+    @include transition(all .3s ease-out);
+    color: var(--primary);
+    font-family: $roboto;
+    font-size: 1.1rem;
+    opacity: .6;
+
+    &:hover {
+      opacity: 1;
+    }
+  }
+
+  .right-container {
+    text-align: right;
+  }
+
+  .left-container {
+    text-align: left;
+  }
+
+  .arrow {
+    @include transition(all .3s ease-out);
+    color: var(--primary);
+    position: absolute;
+
+    &:hover,
+    &:focus {
+      opacity: .6;
+      text-decoration: none;
+    }
+  }
+
+  .left {
+    left: 0;
+  }
+
+  .right {
+    right: 0;
+  }
+
+  .flex-container {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .fa-angle-left {
+    margin: 0 10px 0 0;
+  }
+
+  .fa-angle-right {
+    margin: 0 0 0 10px;
+  }
+}

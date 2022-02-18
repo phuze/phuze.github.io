@@ -1,0 +1,97 @@
+---
+permalink: /404.html
+layout: 404
+title: 404
+---
+
+<div id="particles-js">
+  <div id="particles-content">
+    <img class="astronaut" src="{{ "/assets/astro.png" | relative_url }}">
+    <h1>Sometimes getting lost isn't so bad.</h1>
+    <h2>Unless your oxygen supply is about to run out...</h2>
+    <a href="{{ site.baseurl }}/" class="home" role="button">Take me home!</a>
+  </div>
+</div>
+
+<style type="text/css" media="screen">
+  html { overflow-y: hidden; }
+  body { background: #131920; }
+</style>
+
+<script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+<script>
+var ready = (callback) => {
+  if (document.readyState != "loading") callback();
+  else document.addEventListener("DOMContentLoaded", callback);
+}
+
+ready(() => {
+  particlesJS("particles-js", {
+    particles: {
+      number: {
+        value: 160,
+        density: {
+          enable: true,
+          value_area: 500
+        }
+      },
+      color: {
+        value: "#ffffff"
+      },
+      shape: {
+        type: "circle"
+      },
+      opacity: {
+        value: 1,
+        random: true,
+        anim: {
+          enable: true,
+          speed: 1,
+          opacity_min: 0,
+          sync: false
+        }
+      },
+      size: {
+        value: 3,
+        random: true,
+        anim: {
+          enable: false,
+          speed: 4,
+          size_min: .3,
+          sync: false
+        }
+      },
+      line_linked: {
+        enable: false
+      },
+      move: {
+        enable: true,
+        speed: 1,
+        direction: "none",
+        random: true,
+        straight: false,
+        out_mode: "out",
+        bounce: false,
+        attract: {
+          enable: false,
+          rotateX: 600,
+          rotateY: 600
+        }
+      }
+    },
+    interactivity: {
+      detect_on: "canvas",
+      events: {
+        onhover: {
+          enable: false
+        },
+        onclick: {
+          enable: false
+        },
+        resize: true
+      },
+    },
+    retina_detect: true
+  })
+})
+</script>
