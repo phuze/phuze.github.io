@@ -283,6 +283,7 @@ DEPENDENCIES
   github-pages
   jekyll-feed
   jekyll-paginate
+  jekyll-seo-tag
   jemoji
   tzinfo (~> 1.2)
   tzinfo-data
