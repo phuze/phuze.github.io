@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Building a Secure FTP Server"
-tags: ["linux"]
+tags: ["linux", "ubuntu 20.04", "ftp", "ftps", "sftp"]
 comments: true
 ---
 
