@@ -5,14 +5,6 @@
     <meta name="description" content="{{ site.description }}">
     {% endif %}
 
-    <title>
-    {% if page.title == "Home" %}
-        {{ site.title }}
-    {% else %}
-        {{ page.title }}
-    {% endif %}
-    </title>
-
     <!-- CSS -->
     <link rel="stylesheet" href="{{ "/assets/main.css" | relative_url }}">
     {% if page.title != 404 %}
@@ -24,4 +16,7 @@
 
     <!-- RSS -->
     {% feed_meta %}
+
+    <!-- SEO -->
+    {% seo %}
 </head>
