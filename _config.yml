@@ -2,7 +2,6 @@
 title:        Phuze
 tagline:      "Internet Wizard."
 description:  "Internet Wizard."
-baseurl:      ""
 url:          https://phuze.dev
 logo:         /assets/favicon.png
 lang:         en
@@ -26,6 +25,7 @@ plugins:
   - jekyll-feed
   - jekyll-paginate
   - jekyll-seo-tag
+  - jekyll-spaceship
   - jemoji
 
 # Permalinks
@@ -42,3 +42,9 @@ social:
   email: brendon@larusic.ca
   github: https://github.com/phuze
   linkedin: https://www.linkedin.com/in/brendon-larusic/
+
+# Config for the spaceship plugin
+# https://github.com/jeffreytse/jekyll-spaceship
+jekyll-spaceship:
+  processors:
+    - table-processor

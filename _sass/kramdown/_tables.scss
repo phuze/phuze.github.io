@@ -1,0 +1,27 @@
+table {
+    border-collapse: collapse;
+    border-spacing: 0;
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--table-border);
+    margin: 2rem 0;
+
+    th {
+        color: var(--theme);
+        background: var(--table-accent);
+        border: none;
+        padding: 0.5rem 0;
+    }
+
+    td {
+        background: var(--syntax-bg);
+        padding: 1rem;
+        border-width: 1px;
+        border-style: solid;
+        border-color: var(--table-border);
+    }
+
+    td:first-child {
+        font-weight: 600;
+    }
+}
