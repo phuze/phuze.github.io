@@ -1,6 +1,10 @@
 .post {
   padding: 3rem 0;
 
+  h2 {
+    margin: 4rem 0 2rem;
+  }
+
   &-info {
     color: var(--tertiary);
     font-family: $roboto;
