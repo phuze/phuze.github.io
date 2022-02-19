@@ -3,6 +3,7 @@
 :root {
   // layout
   --theme: #f5f5f5;
+  //--theme: #f3f5f9; // blue tint
   --nav-bg: #ffffff;
   --primary: #353535;
   --secondary: #6c6c6c;
@@ -15,25 +16,27 @@
   --border: #e5e5e5;
   --shadow: rgba(0, 0, 0, .2);
   --links: #4a9ae1;
-  --block-border: #e5e5e5;
+  --block-border: #dddddd;
   --block-bg: #eeeeee;
-  --tag: rgba(0, 0, 0, 0.1);
+  --tag: rgba(0, 0, 0, 0.075);
   // table
   --table-accent: #3b9ea9;
-  --table-border: #cfcfcf;
+  --table-border: #d4d4d4;
   // notice
   --notice-color: #305977;
   --notice-bg: #deeefa;
   --notice-border: #d1e8f8;
   --notice-shadow: #c8e3f7;
   // syntax highlights
-  --syntax-bg: rgb(228, 228, 228);
-  --syntax-inline: rgb(212, 73, 80);
-  --syntax-green: rgb(24, 134, 24);
-  --syntax-blue: rgb(0, 162, 255);
-  --syntax-red: rgb(212, 73, 80);
-  --syntax-purple: rgb(191, 111, 216);
-  --syntax-comment: rgb(153, 153, 153);
+  //--syntax-bg: #ebebeb;
+  --syntax-bg: #e7e7e7;
+  --syntax-inline: #d44950;
+  --syntax-inline-bg: #e7e7e7;
+  --syntax-green: #188618;
+  --syntax-blue: #00a2ff;
+  --syntax-red: #d44950;
+  --syntax-purple: #bf6fd8;
+  --syntax-comment: #999999;
   --syntax-scroll-track: rgba(0, 0, 0, .1);
   --syntax-scroll-thumb: rgba(0, 0, 0, .15);
   --syntax-command: #3b9ea9;
@@ -67,14 +70,14 @@
   --notice-shadow: #3e4b5a;
   // syntax highlights
   --syntax-bg: rgba(0, 0, 0, .2);
-  --syntax-inline: rgb(190, 96, 105);
-  --syntax-green: rgb(152, 195, 121);
-  --syntax-blue: rgb(97, 175, 239);
-  --syntax-red: rgb(212, 73, 80);
-  --syntax-purple: rgb(198, 120, 221);
-  --syntax-comment: rgb(99, 107, 120);
+  --syntax-inline: #be6069;
+  --syntax-green: #98c379;
+  --syntax-blue: #61afef;
+  --syntax-red: #d44950;
+  --syntax-purple: #c678dd;
+  --syntax-comment: #636b78;
   --syntax-scroll-track: rgba(0, 0, 0, .2);
-  --syntax-scroll-thumb: rgb(128, 112, 212);
+  --syntax-scroll-thumb: #8070d4;
   --syntax-command: #366;
 }
 

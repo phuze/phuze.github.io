@@ -1,6 +1,16 @@
 .post {
   padding: 3rem 0;
 
+  a {
+    color: var(--links);
+    text-decoration: none;
+    border-bottom: 1px dotted var(--links);
+  
+    &:hover {
+      border-bottom: 1px solid var(--links);
+    }
+  }
+
   h2 {
     margin: 4rem 0 2rem;
   }
@@ -69,10 +79,6 @@
   p {
     margin: 0 0 1rem;
     text-align: justify;
-  }
-
-  a:hover {
-    text-decoration: underline;
   }
 
   img {
