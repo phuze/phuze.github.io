@@ -41,10 +41,15 @@ a {
 }
 
 blockquote {
-  border-left: .25rem solid var(--block-border);
+  border-left: .4rem solid var(--block-border);
   color: var(--tertiary);
-  margin: .8rem 0;
-  padding: .5rem 1rem;
+  margin: 2rem 0;
+  box-shadow: 0 0 3px var(--shadow);
+  background: var(--block-bg);
+
+  p {
+    padding: 1rem 0;
+  }
 
   p:last-child {
     margin-bottom: 0;
@@ -53,6 +58,10 @@ blockquote {
   @media (min-width: 600px) {
     padding: 0 5rem 0 1.25rem;
   }
+}
+
+body:not(.dark) blockquote {
+	box-shadow: 0 0 1px var(--shadow) !important;
 }
 
 img {

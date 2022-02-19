@@ -14,7 +14,10 @@
   --shadow: rgba(0, 0, 0, .2);
   --links: #4a9ae1;
   --block-border: #e5e5e5;
+  --block-bg: #eeeeee;
   --tag: rgba(0, 0, 0, 0.1);
+  --table-accent: #3b9ea9;
+  --table-border: #cfcfcf;
   // syntax highlights
   --syntax-bg: rgb(228, 228, 228);
   --syntax-inline: rgb(212, 73, 80);
@@ -24,7 +27,8 @@
   --syntax-purple: rgb(191, 111, 216);
   --syntax-comment: rgb(153, 153, 153);
   --syntax-scroll-track: rgba(0, 0, 0, .1);
-  --syntax-scroll-thumb: rgba(128, 112, 212, .5);
+  --syntax-scroll-thumb: rgba(0, 0, 0, .15);
+  --syntax-command: #3b9ea9;
 }
 
 .dark {
@@ -40,8 +44,11 @@
   --border: #333333;
   --shadow: rgba(0, 0, 0, .2);
   --links: #4a9ae1;
-  --block-border: #636b78;
+  --block-border: rgba(0, 0, 0, 0.3);
+  --block-bg: rgba(0, 0, 0, 0.1);
   --tag: rgba(255, 255, 255, 0.1);
+  --table-accent: #3b9ea9;
+  --table-border: #333333;
   // syntax highlights
   --syntax-bg: rgba(0, 0, 0, .2);
   --syntax-inline: rgb(190, 96, 105);
@@ -52,6 +59,7 @@
   --syntax-comment: rgb(99, 107, 120);
   --syntax-scroll-track: rgba(0, 0, 0, .2);
   --syntax-scroll-thumb: rgb(128, 112, 212);
+  --syntax-command: #366;
 }
 
 // Fonts

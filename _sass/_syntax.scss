@@ -15,6 +15,8 @@
 .highlight .c  { color: var(--syntax-comment); } /* Comment */
 .highlight .c1 { color: var(--syntax-comment); } /* Comment.Single */
 .highlight .cs { color: var(--syntax-comment); } /* Comment.Special */
+.highlight .nb { color: var(--syntax-command); } /* Name.Builtin */
+.highlight .bp { color: var(--syntax-command); } /* Name.Builtin.Pseudo */
 
 .highlight .hll { background-color: #ffc; }
 .highlight .err { color: #a00; background-color: #faa } /* Error */
@@ -23,12 +25,11 @@
 .highlight .cm { color: #09f; font-style: italic } /* Comment.Multiline */
 .highlight .cp { color: #099 } /* Comment.Preproc */
 .highlight .gd { background-color: #fcc; border: 1px solid #c00 } /* Generic.Deleted */
-.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .ge { font-style: italic } /* Generic.Emphasis */
 .highlight .gr { color: #f00 } /* Generic.Error */
 .highlight .gi { background-color: #cfc; border: 1px solid #0c0 } /* Generic.Inserted */
 .highlight .go { color: #aaa } /* Generic.Output */
 .highlight .gp { color: #009; } /* Generic.Prompt */
-.highlight .gs { } /* Generic.Strong */
 .highlight .kc { color: #069; } /* Keyword.Constant */
 .highlight .kd { color: #069; } /* Keyword.Declaration */
 .highlight .kn { color: #069; } /* Keyword.Namespace */
@@ -37,7 +38,6 @@
 .highlight .kt { color: #078; } /* Keyword.Type */
 .highlight .m { color: #f60 } /* Literal.Number */
 .highlight .na { color: #4f9fcf } /* Name.Attribute */
-.highlight .nb { color: #366 } /* Name.Builtin */
 .highlight .nc { color: #0a8; } /* Name.Class */
 .highlight .no { color: #360 } /* Name.Constant */
 .highlight .nd { color: #99f } /* Name.Decorator */
@@ -55,7 +55,6 @@
 .highlight .si { color: #a00 } /* Literal.String.Interpol */
 .highlight .sr { color: #3aa } /* Literal.String.Regex */
 .highlight .ss { color: #fc3 } /* Literal.String.Symbol */
-.highlight .bp { color: #366 } /* Name.Builtin.Pseudo */
 .highlight .vc { color: #033 } /* Name.Variable.Class */
 .highlight .vg { color: #033 } /* Name.Variable.Global */
 .highlight .vi { color: #033 } /* Name.Variable.Instance */
