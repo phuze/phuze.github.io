@@ -1,0 +1,55 @@
+.tocbox {
+    padding: 0;
+    margin: 0;
+    z-index: 9;
+
+    .menu-item {
+        margin: -3px 0 0;
+        padding: 0;
+        display: block;
+        background-color: #4285f4;
+        border-radius: 4px;
+
+        a {
+            text-decoration: none;
+            padding: .3rem 1rem;
+            color: #fff;
+            display: block;
+            text-align: left;
+        }
+    }
+
+    .tocwrap {
+        display: none;
+        position: absolute;
+        margin: 0 auto;
+        padding: 0;
+        left: 0;
+        right: 0;
+        max-width: 500px;
+    }
+    
+    .section-nav {
+        background-color: var(--theme);
+        box-shadow: 0 2px 5px 0 rgba(0,0,0,.16), 0 2px 10px 0 rgba(0,0,0,.12);
+        list-style-type: none;
+        padding: 0;
+    }
+    
+    .toc-entry {
+        padding: 0rem .2rem;
+
+        a {
+            color: var(--primary);
+        }
+
+        &:hover {
+            color: var(--notice-color);
+            background-color: var(--notice-bg);
+        }
+
+        &:last-child {
+            padding-bottom: .4rem;
+        }
+    }
+}
