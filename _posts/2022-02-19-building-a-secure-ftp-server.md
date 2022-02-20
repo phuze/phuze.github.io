@@ -3,10 +3,11 @@ layout: post
 title: "Building a Secure FTP Server"
 tags: ["Linux", "Security", "Ubuntu", "Ubuntu 20.04", "FTP", "FTPS", "SFTP"]
 comments: true
+toc: true
 ---
 
 {::nomarkdown}
-<!--<div class="post-notice"><div class="post-notice-content"><em>Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions.</em></div></div>-->
+<!--<div class="post-notice"><div class="post-notice-content">Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions.</div></div>-->
 {:/nomarkdown}
 
 Building a secure FTP server should begin with a clear understanding of the mechanisms involved. When we talk about an FTP server, this commonly involves three protocols:
@@ -15,39 +16,49 @@ Building a secure FTP server should begin with a clear understanding of the mech
 2. [__FTPS__](https://en.wikipedia.org/wiki/FTPS){:target="_blank"} — FTP over SSL, or FTP Secure. This is an extension to the basic FTP protocol, which adds support for [TLS](https://en.wikipedia.org/wiki/Transport_Layer_Security){:target="_blank"} (Transport Layer Security).
 3. [__SFTP__](https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol){:target="_blank"} — While the acronym is similar, this is SSH File Transfer Protocol, and it operates unrelated to both FTP and FTPS.
 
+Deciding which protocols work best for you, depends largely on your project. There should almost never be a need to support basic FTP. The exception might be if you needed a simple file transfer solution between servers that exist within a private local network. Otherwise, using FTP is akin to serving an application over HTTP instead of HTTPS.
+
 Let's explore some of the key differences between each protocol.
 
 | | :FTP: | :FTPS: | :SFTP: |
 | - | - | - | - |
+| Command Port | 21 | 990 | 22 |
+| Data Port | 20 | 989 (active mode) — passive mode is user defined, but by default any port 0—65535 | 22 |
 | Security | : Basic FTP doesn't encrypt any communication between the client and the server :  | : Command and data channels are encrypted only if the client issues the necessary [AUTH](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} and [PROT](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} commands : | : Relies on SSH for data encryption over the wire - commands and data are always encrypted : |
 | Connections | : At least 2: one port to issue commands and a separate port for data : || : Only 1 is required (commands and data use the same connection) : |
-| Pros | : Virtually none, though it may be bit faster given there is no encryption overhead : | : Widely known and supported, with great support for server-to-server file transfers : | : Commands and data are always encrypted, and is backed by solid standards : |
+| Pros | : Anonymous FTP access in browser, and slightly faster due to having no encryption overhead : | : Widely known and supported, with better support for server-to-server file transfers : | : Commands and data are always encrypted, and is backed by solid standards : |
 | Cons | : Connection details and data is transmitted in clear text : | : Requires a secondary DATA channel, which makes it harder to use behind firewalls and NATs : | : Limited server-to-server options, dependent on environment and application : |
 
 {::nomarkdown}
 <div class="post-notice"><div class="post-notice-icon"><svg aria-hidden="true" focusable="false" data-prefix="fad" data-icon="info-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-fw fa-2x svg-inline--fa fa-info-circle fa-w-16"><g class="fa-group"><path fill="#98b3c6" d="M256 8C119 8 8 119.08 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 110a42 42 0 1 1-42 42 42 42 0 0 1 42-42zm56 254a12 12 0 0 1-12 12h-88a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h12v-64h-12a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h64a12 12 0 0 1 12 12v100h12a12 12 0 0 1 12 12z" class="fa-secondary"></path><path fill="#305977" d="M256 202a42 42 0 1 0-42-42 42 42 0 0 0 42 42zm44 134h-12V236a12 12 0 0 0-12-12h-64a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h12v64h-12a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h88a12 12 0 0 0 12-12v-24a12 12 0 0 0-12-12z" class="fa-primary"></path></g></svg></div><div class="post-notice-content">Tip: To use FTPS in <a href="https://filezilla-project.org/" target="_blank">FileZilla</a>, set the Encryption option to: <em>Require explicit FTP over TLS</em>.</div></div>
 {:/nomarkdown}
 
-## Deciding What's Best
+### Implicit -vs- Explicit in FileZilla
 
-Deciding which protocols work best for you, depends largely on your planned use. There should almost never be a need to support basic FTP. The only exception might be if you needed a simple file transfer solution between servers that exist within a private local network.
+It’s worth noting that explicit FTPS uses port 21, where implicit FTPS uses port 990. With <em>explicit</em> mode, clients initially connect to the standard FTP port (21), and then upgrades the connection into secure FTPS mode (990), by issuing an [AUTH](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} command. By comparison, with <em>implicit mode</em>, its assumed the connection is always encrypted from the beginning.
 
-If you are building an FTP server that is public facing, under no circumstance should you allow basic FTP. In this article, i'm going to show you how to build a secure FTP server that supports both FTPS and SFTP simultaneously.
+As described in this [FileZilla Wiki](https://wiki.filezilla-project.org/FTP_over_TLS#Explicit_vs_Implicit_FTPS){:target="_blank"}, Explicit mode is considered more modern. When also considering that most clients and software libraries assume port 21 as the default, Explicit is recommended over Implicit.
+
+When considering your FTP server, you can switch to implicit mode by listening on port 990 instead of 21, and enabling the [implicit_ssl](http://vsftpd.beasts.org/vsftpd_conf.html) option:
+
+{% highlight conf %}
+listen_port=990
+implicit_ssl=YES
+{% endhighlight %}
 
 ## Getting Started
 
-This is part one of two articles, where I'm going to show you how to build a secure FTP server with the following features:
+I'm going to show you how to build a secure FTP server with the following features:
 
 - Support for both FTPS and SFTP to maximize integration options for third-parties.
-- Virtual FTPS users which provides enhanced security for our FTPS server.
+- Virtual FTPS users with custom authentication using a Berkeley DB database.
 - Jailed user environments, so that users cannot access any files or directories outside of their own dedicated folders.
-- User authentication using a Berkeley DB database with encrypted passwords.
 - Shell-less SFTP users, so that users can only perform file transfer operations.
 - A command script for easy user management.
 
 You're going to need the following tools and software:
 
-- A unix-based virtual machine — in my case, I've built this on a VM running __Ubuntu 20.04__.
+- A linux-based virtual machine — I've used Ubuntu 20.04.
 - [__vsftpd__](https://help.ubuntu.com/community/vsftpd){:target="_blank"} (Very Secure FTP Daemon) — this is our FTP server software.
 - [__db-util__](https://packages.ubuntu.com/focal/db-util){:target="_blank"} — [Berkeley DB](https://www.oracle.com/database/technologies/related/berkeleydb.html){:target="_blank"} database utilities (this will be for our custom user database)
 - SSL certificate (if you plan on creating your own DNS record) — otherwise, we can generate a self-signed certificate.
@@ -69,6 +80,8 @@ sudo nano /etc/vsftpd.conf
 
 and replace the entire contents with the configuration below. I've added comments describing what each of the options are for. If you're looking for additional information, I recommend the [Red Hat Documentation](https://web.mit.edu/rhel-doc/5/RHEL-5-manual/Deployment_Guide-en-US/s1-ftp-vsftpd-conf.html){:target="_blank"} on vsftpd, as well as Ubuntu's [community help wiki](https://help.ubuntu.com/community/vsftpd){:target="_blank"}.
 
+Be sure to look at the `pasv_address`, `rsa_cert_file` and `rsa_private_key_file` options at the bottom. You will need to update these values related to your own server.
+
 {% highlight conf %}
 # run vsftpd in stand-alone mode
 listen=YES
@@ -77,7 +90,8 @@ listen_port=21
 # disable IPv6 (cannot be used with stand-alone mode)
 listen_ipv6=NO
 
-# logs - default log location: /var/log/vsftpd.log
+# enable connection level logging (helps with troubleshooting)
+# default log location: /var/log/vsftpd.log
 xferlog_enable=YES
 xferlog_std_format=NO
 log_ftp_protocol=YES
@@ -93,20 +107,23 @@ guest_enable=YES
 guest_username=ftp
 
 # default umask for local users
-local_umask=022
+# 022 allows only our local user to write, but anyone can read
+# 077 is completely private, no other user can read or write
+local_umask=077
 
-# virtual users will use same privs as local users
+# virtual users will have the same privileges
+# as our local guest account
 virtual_use_local_privs=YES
 
-# write permissions
+# write permissions for users
 write_enable=YES
 allow_writeable_chroot=YES
 
-# automatically generate a home directory for each virtual user
-user_sub_token=$USER
-
 # virtual user directory
 local_root=/home/vftp/$USER
+
+# automatically generate a home directory for each virtual user
+user_sub_token=$USER
 
 # jail all users by default
 chroot_local_user=YES
@@ -116,7 +133,7 @@ secure_chroot_dir=/var/run/vsftpd/empty
 # hide info about file owner (user and group)
 hide_ids=YES
 
-# misc options
+# miscellaneous options
 dirmessage_enable=YES
 use_localtime=YES
 
@@ -132,13 +149,71 @@ pam_service_name=vsftpd.virtual
 # to help against DoS attacks
 max_per_ip=3
 idle_session_timeout=300
+
+# passive mode configuration
+# enter your own servers public IP address
+pasv_address=0.0.0.0
+pasv_min_port=50000
+pasv_max_port=50999
+pasv_promiscuous=YES
+pasv_enable=YES
+
+# SSL
+ssl_enable=YES
+allow_anon_ssl=NO
+force_local_data_ssl=YES
+force_local_logins_ssl=YES
+ssl_tlsv1=YES
+ssl_sslv2=NO
+ssl_sslv3=NO
+rsa_cert_file=/path/to/bundle.crt
+rsa_private_key_file=/path/to/cert.key
 {% endhighlight %}
 
-## Step 3: Create a new PAM service
+## Step 3: Configuring firewalls
 
-PAM (short for Pluggable Authentication Modules), is a powerful suite of libraries that allow us to dynamically authenticate users in a Linux-based system. We're going to use the [pam_userdb](https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html){:target="_blank"} module which will allow us to authenticate against a db database.
+In passive mode, the client initiates a [PASV](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} command to the server, which requests an available port for data transmission. By default, vsftpd does not limit the port range, meaning a client could be returned a port anywhere between 0—65535.
 
-Create a new PAM file that will use our new database (you'll create this later in step 5):
+Instead, we've defined a data port range between 50000—50999 in our `vsftpd.conf`, which gives us 999 available data ports for clients. If you anticipate having significant numbers of concurrent users, consider increasing this range.
+
+Now that we've defined an explicit range, we need to allow this range of ports in our firewall. If you're using [Microsoft Azure](https://portal.azure.com/){:target="_blank"}, apply these rules to a Network Security Group that covers your FTP server. If you're using Ubuntu's [Uncomplicated Firewall (UFW)](https://help.ubuntu.com/community/UFW){:target="_blank"}, first make sure its enabled:
+
+{% highlight bash %}
+sudo ufw status
+{% endhighlight %}
+
+enable it if you need to:
+
+{% highlight bash %}
+sudo ufw enable
+{% endhighlight %}
+
+then allow the TCP port range we defined in our `vsftp.conf` config:
+
+{% highlight bash %}
+sudo ufw allow 50000:50999/tcp
+{% endhighlight %}
+
+In addition, we must also allow default ports common to the FTPS and SFTP protocols. Again, if you're using Azure, apply these rules to a Network Security Group. Otherwise, update your Ubuntu firewall:
+
+{% highlight bash %}
+sudo ufw allow 20,21,22,989,990/tcp
+{% endhighlight %}
+
+Here is a recap of the ports we're allowing:
+
+- `20` — FTP data channel
+- `21` — FTP command channel
+- `22` — SSH
+- `989` — FTPS data channel (active mode)
+- `990` — FTPS command channel
+- `50000—50999` — FTPS data channels (passive mode)
+
+## Step 4: Create a new PAM service
+
+PAM (short for Pluggable Authentication Modules), is a powerful suite of libraries that allow us to dynamically authenticate users in a Linux-based system. We're going to use the [pam_userdb](https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html){:target="_blank"} module which will allow us to authenticate against a DB database.
+
+Create a new PAM file that will use our new database (you'll create the database in step 6):
 
 {% highlight bash %}
 sudo nano /etc/pam.d/vsftpd.virtual
@@ -153,9 +228,22 @@ account    required     pam_userdb.so db=/etc/vsftpd/users
 session    required     pam_loginuid.so
 {% endhighlight %}
 
-Note that the path to the database file should be specified without the `.db` suffix. In part two of this article, I'll show you how to encrypt passwords which will require the use of the [crypt](https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html#OPTIONS){:target="_blank"} option in our PAM file.
+Note that the path to the database file should be specified without the `.db` suffix.
 
-## Step 4: Create service directories
+As an extra, `pam_userdb` allows us to define whether passwords stored in our user database, are encrypted, by passing an additional [crypt](https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html#OPTIONS){:target="_blank"} option.
+
+{% highlight bash %}
+#%PAM-1.0
+auth       required     pam_userdb.so db=/etc/vsftpd/users crypt=crypt
+account    required     pam_userdb.so db=/etc/vsftpd/users crypt=crypt
+session    required     pam_loginuid.so
+{% endhighlight %}
+
+It's important to know, if you choose this option, passwords must be stored in [crypt(3)](http://www.linux-pam.org/Linux-PAM-html/sag-pam_userdb.html) form. The `crypt()` function relies on the legacy DES (Data Encryption Standard) algorithm, which only supports a maximum password length of 8 characters. This is not often expressly pointed out, but is described in the related [manual](Source: https://man7.org/linux/man-pages/man3/crypt.3.html):
+
+> By taking the lowest 7 bits of each of the first eight characters of the key, a 56-bit key is obtained.  This 56-bit key is used to encrypt repeatedly a constant string (usually a string consisting of all zeros).
+
+## Step 5: Create service directories
 
 We're going to need some directories where user content will live. It is important that user directories are created inside a parent directory, which will act as our jail. We'll also need a place to keep our virtual user database.
 
@@ -170,7 +258,7 @@ sudo mkdir /home/sftp
 sudo mkdir /etc/vsftpd
 {% endhighlight %}
 
-## Step 5: Create FTPS user database
+## Step 6: Create FTPS user database
 
 Rather than creating local users for FTPS, we're going to create virtual users — a feature of vsftpd. Virtual FTPS user will help enhance the security of our FTP server.
 
@@ -212,7 +300,7 @@ sudo chmod 0600 /etc/vsftpd/users.db
 sudo rm /etc/vsftpd/users.txt
 {% endhighlight %}
 
-## Step 6: Create user directories
+## Step 7: Create user directories
 
 Now we need directories for our new users:
 
@@ -221,7 +309,7 @@ sudo mkdir -p /home/vftp/{batman,robin}
 sudo mkdir -p /home/sftp/{batman,robin}
 {% endhighlight %}
 
-## Step 7: Create SFTP users
+## Step 8: Create SFTP users
 
 Since SFTP users are local users, let's go ahead and create them — keeping in mind that these are not the same as our virtual FTPS users.
 
@@ -232,7 +320,7 @@ sudo adduser --shell /bin/false robin
 
 Here we're passing the `--shell <shell>` argument, which defines what shell is loaded for the user on login. In this case, we're supplying `/bin/false`, which is actually no shell at all. This effectively removes the user's shell access, ensuring they can only use their access for SFTP file transfers.
 
-## Step 8: Jailing FTPS users
+## Step 9: Jailing FTPS users
 
 In order to jail our users, which we'll accomplish using [chroot](http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html){:target="_blank"}, we need to set some very specific permissions, and make a few changes to our configuration files.
 
@@ -248,7 +336,7 @@ Next, remove all group permissions on our parent FTPS directory:
 sudo chmod 0555 /home/vftp
 {% endhighlight %}
 
-## Step 9: Jailing SFTP users
+## Step 10: Jailing SFTP users
 
 In order to jail our SFTP users, we'll need to create a group, under which all SFTP users must belong — we'll call it `sftponly`:
 
@@ -263,7 +351,7 @@ sudo usermod -a -G sftponly batman
 sudo usermod -a -G sftponly robin
 {% endhighlight %}
 
-
+Next, we need to make some configuration changes to our SSH service. Open the [sshd_config](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} file:
 
 {% highlight bash %}
 sudo nano /etc/ssh/sshd_config
@@ -283,7 +371,7 @@ Subsystem   sftp    internal-sftp
 
 What we're doing here, is defining the [external subsystem](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} (eg: file transfer daemon), which is started automatically after SSH login from the client. The `internal-sftp` value implements an in-process SFTP server that requires no support files when defining a `ChrootDirectory`. Basically, it simplifies the process allowing us to force a different filesystem root on our users (jail them).
 
-In order to jail our SFTP users, first create a group , add this block of code to the very end:
+Now lets create a conditional block, using Match, that will apply some options to any user belonging to the `sftponly` group:
 
 {% highlight bash %}
 # lock all users that are part of the
@@ -298,14 +386,15 @@ Match Group sftponly
         X11Forwarding no
 {% endhighlight %}
 
-There's a few important things to understand about this code block.
+There's a few important things to understand about these options.
 
 1. [ForceCommand](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} forces the execution of the command specified, ignoring any commands supplied by the client. By default, when an SSH user logs in, they would land in our `/home/sftp` directory, thereby allowing them to see all other users that might exist. While they won't be able to access those directories, it's better they don't see them at all. To fix this, we're going to force a directory change upon login, by passing the `-d <path>` argument, where `/%u` is our path relative to our ChrootDirectory, and `%u` is a token that represents the username. So on login, the user should automatically be brought to `/home/sftp/batman` without knowing it.
 
-2. [PasswordAuthentication](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} you can set this to either `no` or `yes` depending if you want to allow SFTP users to authenticate with passwords. The alternative being private/public SSH keys, which are safer, though requires more involvement to manage. I recommend allowing passwords, so long as you set strong ones. I'll also be covering cryptographically secure passwords in part two of this article.
+2. [PasswordAuthentication](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} you can set this to either `no` or `yes` depending if you want to allow SFTP users to authenticate with passwords. The alternative being private/public SSH keys, which are safer, though requires more involvement to manage. I recommend allowing passwords, so long as you are creating users with cryptographically strong passwords.
 
-3. [ChrootDirectory](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} specifies the pathname of the directory to [chroot](http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html){:target="_blank"} to after the user authenticates.
+3. [ChrootDirectory](http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html){:target="_blank"} specifies the pathname of the directory to [chroot](http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html){:target="_blank"} to after the user authenticates. A requirement of Chroot, is that `root` be the owner of the jailed directory.
 
+Lastly, lets set some required permissions — note that `0711` grants public execute, but limits read and write to the owner (root), as required by Chroot:
 
 {% highlight bash %}
 sudo chown root:root /home/sftp

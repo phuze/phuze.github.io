@@ -1,5 +1,5 @@
 .post {
-  padding: 3rem 0;
+  padding: 7rem 0;
 
   a {
     color: var(--links);
@@ -16,10 +16,10 @@
   }
 
   &-info {
+    //text-align: center;
     color: var(--tertiary);
     font-family: $roboto;
     letter-spacing: 0.5px;
-    text-align: center;
 
     span {
       font-style: italic;
@@ -27,15 +27,15 @@
   }
 
   &-title {
+    //text-align: center;
     color: var(--primary);
     font-family: $roboto;
     font-size: 2.5rem;
     margin: 0 0 1rem 0;
-    text-align: center;
   }
 
   &-tags {
-    text-align: center;
+    //text-align: center;
     margin: 0.2rem 0 0.4rem;
     color: var(--secondary);
   }
@@ -53,6 +53,28 @@
     margin: 0 auto 3rem;
     width: 4rem;
   }
+
+  &-break {
+    margin: 0 0 2.5rem;
+    border: 0;
+    height: 1px;
+    border-top: 2px solid var(--break);
+    /*
+    background-image: -webkit-linear-gradient(left, #21252b, #585858, #21252b);
+    background-image: -moz-linear-gradient(left, #21252b, #585858, #21252b);
+    background-image: -ms-linear-gradient(left, #21252b, #585858, #21252b);
+    background-image: -o-linear-gradient(left, #21252b, #585858, #21252b);
+    */
+  }
+
+  /*
+  body:not(.dark) &-break {
+    background-image: -webkit-linear-gradient(left, #f5f5f5, #969696, #f5f5f5) !important;
+    background-image: -moz-linear-gradient(left, #f5f5f5, #969696, #f5f5f5) !important;
+    background-image: -ms-linear-gradient(left, #f5f5f5, #969696, #f5f5f5) !important;
+    background-image: -o-linear-gradient(left, #f5f5f5, #969696, #f5f5f5) !important;
+  }
+  */
 
   &-notice {
     display: flex;
