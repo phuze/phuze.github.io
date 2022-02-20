@@ -74,7 +74,8 @@
       })
       // table of contents dropdown
       const tocwrap = document.getElementById("tocwrap")
-      document.getElementById("toc-btn").addEventListener("click", () => {
+      document.getElementById("toc-btn").addEventListener("click", (event) => {
+        event.preventDefault()
         if (tocwrap.style.display === 'block') {
           tocwrap.style.display = 'none'
         } else {
