@@ -3,8 +3,6 @@ name: build and deploy
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -13,24 +11,20 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the site in the jekyll/builder container
+    - name: 🔨 Build the site in the jekyll/builder docker container
       run: |
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll \
         -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod 777 /srv/jekyll" \
-        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /srv/jekyll" \
-        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /usr/gem" \
-        jekyll/builder:latest /bin/bash -c "jekyll build --future"
-    - name: Push the site to the gh-pages branch
-      if: ${{ github.event_name == 'push' }}
+        jekyll/builder /bin/bash -c "chmod 777 /srv/jekyll && chmod 777 /usr/gem && jekyll build"
+    - name: 🧪 Push the site to the gh-pages branch
       run: |
-        sudo chown $( whoami ):$( whoami ) ${{ github.workspace }}/_site
+        sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site
         cd ${{ github.workspace }}/_site
         git init -b gh-pages
         git config user.name ${{ github.actor }}
         git config user.email ${{ github.actor }}@users.noreply.github.com
         git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
         git add .
-        git commit -m "Deploy site built from commit ${{ github.sha }}"
+        git commit -m "🧪 Deployed site from commit ${{ github.sha }}"
         git push -f -u origin gh-pages
