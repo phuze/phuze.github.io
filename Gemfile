@@ -1,7 +1,8 @@
 source 'https://rubygems.org'
 
 # Use github pages, instead of the core jekyll
-gem 'github-pages', group: :jekyll_plugins
+#gem 'github-pages', group: :jekyll_plugins
+gem 'jekyll'
 
 # Plugins
 group :jekyll_plugins do
