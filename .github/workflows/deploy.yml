@@ -16,7 +16,7 @@ jobs:
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll \
         -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder /bin/bash -c "chmod 777 /srv/jekyll && chmod 777 /usr/gem && jekyll build"
+        jekyll/builder /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
     - name: 🧪 Push the site to the gh-pages branch
       run: |
         sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site
