@@ -5,7 +5,7 @@ tags:
   - Linux
   - Security
   - Ubuntu
-  - Ubuntu
+  - Ubuntu 20.04
   - FTP
   - FTPS
   - SFTP
