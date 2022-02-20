@@ -37,8 +37,6 @@ name: build and deploy
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
   build:
@@ -47,26 +45,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Build the site in the jekyll/builder container
+    - name: 🔨 Build the site in the jekyll/builder docker container
       run: |
         docker run \
-        -v {% raw %}${{ github.workspace }}{% endraw %}:/srv/jekyll \
-        -v {% raw %}${{ github.workspace }}{% endraw %}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod 777 /srv/jekyll" \
-        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /srv/jekyll" \
-        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /usr/gem" \
-        jekyll/builder:latest /bin/bash -c "jekyll build --future"
-    - name: Push the site to the gh-pages branch
-      if: {% raw %}${{ github.event_name == 'push' }}{% endraw %}
+          -v {% raw %}${{ github.workspace }}{% endraw %}:/srv/jekyll \
+          -v {% raw %}${{ github.workspace }}{% endraw %}/_site:/srv/jekyll/_site \
+          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
+    - name: 🧪 Push the site to the gh-pages branch
       run: |
-        sudo chown $( whoami ):$( whoami ) ${{ github.workspace }}/_site
-        cd ${{ github.workspace }}/_site
+        sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
+        cd {% raw %}${{ github.workspace }}{% endraw %}/_site
         git init -b gh-pages
         git config user.name {% raw %}${{ github.actor }}{% endraw %}
         git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
-        git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/${{ github.repository }}.git
+        git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
         git add .
-        git commit -m "Deploy site built from commit {% raw %}${{ github.sha }}{% endraw %}"
+        git commit -m "🧪 Deployed with commit {% raw %}${{ github.sha }}{% endraw %}"
         git push -f -u origin gh-pages
 {% endhighlight %}
 
@@ -75,7 +69,7 @@ jobs:
 Let's take a closer look at what's happening in this workflow:
 
 - `name` — The name of our workflow.
-- `on` — Defines when the workflow will be triggered. in this example, thats either on a push or pull-request to the `main` branch
+- `on` — Defines when the workflow will be triggered. In this example, on push to the `main` branch
 - `jobs` — A set of steps to be executed when our workflow is triggered. You can learn more about jobs from the [GitHub Docs](https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions#jobs){:target="_blank"}.
 - `steps` — These are the individual steps which make up our job. 
 
@@ -88,18 +82,15 @@ Our job begins with a reusable action, [actions/checkout@v2](https://github.com/
 Following that, we're going to use the [jekyll/builder](https://hub.docker.com/r/jekyll/builder){:target="_blank"} docker image to build our project files:
 
 {% highlight yaml %}
-- name: Build the site in the jekyll/builder container
-    run: |
+- name: 🔨 Build the site in the jekyll/builder docker container
+  run: |
     docker run \
     -v {% raw %}${{ github.workspace }}{% endraw %}:/srv/jekyll \
     -v {% raw %}${{ github.workspace }}{% endraw %}/_site:/srv/jekyll/_site \
-    jekyll/builder:latest /bin/bash -c "chmod 777 /srv/jekyll" \
-    jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /srv/jekyll" \
-    jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /usr/gem" \
-    jekyll/builder:latest /bin/bash -c "jekyll build --future"
+    jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
 {% endhighlight %}
 
-It is necessary to grant the user `jekyll` ownership and permissions to both the `/srv/jekyll` and `/usr/gem` directories, otherwise you'll encounter build errors. This is why you see the `chmod` and `chown` commands.
+It is necessary to grant public read/write permissions to both the `/srv/jekyll` and `/usr/gem` directories, otherwise you'll encounter build errors like this:
 
 > There was an error while trying to write to `/srv/jekyll/Gemfile.lock`. It is
 > likely that you need to grant write permissions for that path.
@@ -108,25 +99,24 @@ It is necessary to grant the user `jekyll` ownership and permissions to both the
 The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by creating a dedicated branch containing everything you'd find within the build directory, `/_site`. We'll then update our repository settings to serve our Pages site from that branch.
 
 {% highlight yaml %}
-- name: Push the site to the gh-pages branch
-    if: {% raw %}${{ github.event_name == 'push' }}{% endraw %}
-    run: |
-    sudo chown $( whoami ):$( whoami ) ${{ github.workspace }}/_site
-    cd ${{ github.workspace }}/_site
+- name: 🧪 Push the site to the gh-pages branch
+  run: |
+    sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
+    cd {% raw %}${{ github.workspace }}{% endraw %}/_site
     git init -b gh-pages
     git config user.name {% raw %}${{ github.actor }}{% endraw %}
     git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
-    git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/${{ github.repository }}.git
+    git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
     git add .
-    git commit -m "Deploy site built from commit {% raw %}${{ github.sha }}{% endraw %}"
+    git commit -m "🧪 Deployed with commit {% raw %}${{ github.sha }}{% endraw %}"
     git push -f -u origin gh-pages
 {% endhighlight %}
 
 First we make sure our workspace environment has ownership over our `/_site` directory, and enter it:
 
 {% highlight yaml %}
-sudo chown $( whoami ):$( whoami ) ${{ github.workspace }}/_site
-cd ${{ github.workspace }}/_site
+sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
+cd {% raw %}${{ github.workspace }}{% endraw %}/_site
 {% endhighlight %}
 
 Next we initialize a new repository under the `/_site` directory, along with a new `gh-pages` branch we'll use as our deployment branch:
@@ -135,7 +125,7 @@ Next we initialize a new repository under the `/_site` directory, along with a n
 git init -b gh-pages
 git config user.name {% raw %}${{ github.actor }}{% endraw %}
 git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
-git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/${{ github.repository }}.git
+git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
 {% endhighlight %}
 
 Lastly, we commit our built site to our `gh-pages` branch:
