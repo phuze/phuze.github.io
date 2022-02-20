@@ -1,18 +1,21 @@
 ---
 layout: post
-title: "How to Use Unsupported Plugins with GitHub Pages"
-tags: ["Jekyll", "Jekyll 4.2.1", "GitHub Pages"]
+title: "How to Use Unsupported Jekyll Plugins with GitHub Pages"
+tags:
+  - Jekyll
+  - Jekyll 4.2.1
+  - GitHub Pages
 comments: true
 toc: true
 ---
 
-A benefit of Jekyll, is it's seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you're more likely to encounter unsupported plugins:
+A benefit of Jekyll, is it's seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you're more likely to encounter unsupported plugins when trying to deploy to GitHub:
 
-```
-github-pages 223 | Error:  Liquid syntax error (line 28): Unknown tag
-```
+{% highlight bash %}
+github-pages 223 | Error:  Liquid syntax error on line 28: Unknown tag
+{% endhighlight %}
 
-The reason — GitHub Pages only supports a specific list of [dependencies and plugins](https://pages.github.com/versions/){:target="_blank"}.
+The reason — all GitHub Page sites are generated using the `--safe` option to disable plugins (with the exception of some [whitelisted plugins](https://pages.github.com/versions/){:target="_blank"}). Unfortunately, this means many plugins won't work if you're deploying via GitHub Pages.
 
 The way to make use of unsupported plugins, is to build your website locally, instead of relying on GitHub's automated build and deploy process for Jekyll.
 
@@ -21,15 +24,12 @@ The way to make use of unsupported plugins, is to build your website locally, in
 Update your `Gemfile` and use the core `jekyll` gem, rather than the `github-pages` gem.
 
 {% highlight ruby %}
-source 'https://rubygems.org'
-
-# Jekyll
 gem 'jekyll'
 {% endhighlight %}
 
-## Step 2: Create an action workflow
+## Step 2: Create a GitHub action workflow
 
-In your project, create a new workflow file `.github/workflows/deploy.yml`. This workflow ends up creating a new `gh-pages` branch for deployment. Find and change this if you prefer a different branch name:
+In your project, create a new workflow file `/.github/workflows/deploy.yml`. This workflow will create a new `gh-pages` branch for deployment. Find and change this if you prefer a different branch name:
 
 {% highlight yaml %}
 name: build and deploy
@@ -90,13 +90,13 @@ Following that, we're going to use the [jekyll/builder](https://hub.docker.com/r
     jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
 {% endhighlight %}
 
-It is necessary to grant public read/write permissions to both the `/srv/jekyll` and `/usr/gem` directories, otherwise you'll encounter build errors like this:
+It is necessary to grant public read/write permissions to both the `/srv/jekyll` and `/usr/gem` directories, otherwise you'll encounter build errors:
 
 > There was an error while trying to write to `/srv/jekyll/Gemfile.lock`. It is
 > likely that you need to grant write permissions for that path.
 > Error: Process completed with exit code 23.
 
-The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by creating a dedicated branch containing everything you'd find within the build directory, `/_site`. We'll then update our repository settings to serve our Pages site from that branch.
+The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by pushing our build changes to our deployment branch.
 
 {% highlight yaml %}
 - name: 🧪 Push the site to the gh-pages branch
@@ -112,14 +112,14 @@ The last step of our job, is to deploy our Jekyll website to GitHub pages. We ac
     git push -f -u origin gh-pages
 {% endhighlight %}
 
-First we make sure our workspace environment has ownership over our `/_site` directory, and enter it:
+First we make sure our workspace environment has ownership over our build directory (`/_site`), then enter it:
 
 {% highlight yaml %}
 sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
 cd {% raw %}${{ github.workspace }}{% endraw %}/_site
 {% endhighlight %}
 
-Next we initialize a new repository under the `/_site` directory, along with a new `gh-pages` branch we'll use as our deployment branch:
+Next we initialize a new repository, along with a new `gh-pages` branch we'll use as our deployment branch:
 
 {% highlight yaml %}
 git init -b gh-pages
@@ -128,7 +128,7 @@ git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.git
 git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
 {% endhighlight %}
 
-Lastly, we commit our built site to our `gh-pages` branch:
+Lastly, we commit our built website files to our `gh-pages` branch:
 
 {% highlight yaml %}
 git add .
@@ -138,7 +138,7 @@ git push -f -u origin gh-pages
 
 ## Step 3: Commit the workflow
 
-Go ahead and commit your workflow file. This also serves to trigger our workflow action, necessary for Step 4.
+Go ahead and commit your workflow file. This also serves to trigger our workflow action.
 
 ## Step 4: Update repository settings
 
