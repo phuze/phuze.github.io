@@ -18,7 +18,10 @@ jobs:
         docker run \
         -v ${{ github.workspace }}:/srv/jekyll \
         -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder:latest /bin/bash -c "chmod 777 /srv/jekyll && chown jekyll:jekyll -R /srv/jekyll && chown jekyll:jekyll -R /usr/gem && jekyll build --future"
+        jekyll/builder:latest /bin/bash -c "chmod 777 /srv/jekyll" \
+        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /srv/jekyll" \
+        jekyll/builder:latest /bin/bash -c "chown jekyll:jekyll -R /usr/gem" \
+        jekyll/builder:latest /bin/bash -c "jekyll build --future"
     - name: Push the site to the gh-pages branch
       if: ${{ github.event_name == 'push' }}
       run: |
