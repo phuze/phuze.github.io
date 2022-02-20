@@ -14,9 +14,9 @@ jobs:
     - name: 🔨 Build the site in the jekyll/builder docker container
       run: |
         docker run \
-        -v ${{ github.workspace }}:/srv/jekyll \
-        -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
-        jekyll/builder /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
+          -v ${{ github.workspace }}:/srv/jekyll \
+          -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+          jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
     - name: 🧪 Push the site to the gh-pages branch
       run: |
         sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site
@@ -26,5 +26,5 @@ jobs:
         git config user.email ${{ github.actor }}@users.noreply.github.com
         git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
         git add .
-        git commit -m "🧪 Deployed site from commit ${{ github.sha }}"
+        git commit -m "🧪 Deployed with commit ${{ github.sha }}"
         git push -f -u origin gh-pages
