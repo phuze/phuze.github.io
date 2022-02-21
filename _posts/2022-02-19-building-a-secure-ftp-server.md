@@ -442,8 +442,47 @@ To help facilitate future updates, I've included the script as a [gist](https://
 
 As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script.
 
-Here's an example model I've written in PHP. It makes use of the [phpseclib](https://github.com/phpseclib/phpseclib) library.
+Here's a quick example written in PHP, that makes use of [phpseclib](https://github.com/phpseclib/phpseclib){:target="_blank"}:
 
-To help facilitate future updates, I've included the model as a [gist](https://gist.github.com/phuze/a0ec4cb4a79c15ec260bb532bb6c5536){:target="_blank"}:
+{% highlight php %}
+namespace MyApi\Models;
 
-{% gist a0ec4cb4a79c15ec260bb532bb6c5536 %}
+use phpseclib3\Net\SSH2;
+use phpseclib3\Crypt\PublicKeyLoader;
+
+class FtpModel
+{
+    public function __construct() {
+        $this->key = PublicKeyLoader::load(file_get_contents('/path/to/private/key'));
+        $this->ssh = new SSH2('my.domain.com', 22, 30);
+        if (!$this->ssh->login('username', $this->key)) {
+          throw new Exception('Unable to establish SSH connection.');
+        }
+    }
+
+    public function addUser(string $username, string $password) {
+        $this->ssh->exec("sudo /etc/vsftpd/users add {$username} {$password}");
+    }
+}
+{% endhighlight %}
+
+and in Python — using [Paramiko](https://github.com/paramiko/paramiko){:target="_blank"}:
+
+{% highlight python %}
+import paramiko
+
+def connect():
+    conn = paramiko.SSHClient()
+    conn.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    conn.connect('<host>', username='<user>', password='<pass>', key_filename='</path/to/private/key>')
+    return conn
+
+def main():
+    ssh = connect()
+    stdin, stdout, stderr = ssh.exec_command('sudo /etc/vsftpd/users add {$username} {$password}')
+    print stdout.readlines()
+    ssh.close()
+
+main()
+{% endhighlight %}
+
