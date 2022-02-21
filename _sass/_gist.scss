@@ -1,0 +1,70 @@
+.gist {
+
+    .blob-wrapper {
+        border: 0px !important;
+
+        &::-webkit-scrollbar {
+            width: 10px !important;
+        }
+        
+        &::-webkit-scrollbar-track {
+            background-color: var(--syntax-scroll-track) !important;
+        }
+        
+        &::-webkit-scrollbar-thumb {
+            border-radius: 10px !important;
+            border: 4px solid transparent !important;
+            background-clip: content-box !important;
+            background-color: var(--syntax-scroll-thumb) !important;
+        }
+    }
+
+    .gist-file {
+        border: 0px solid var(--border) !important;
+        border-bottom: 1px solid var(--border) !important;
+        background: none !important;
+    }
+
+    table td {
+        border: 0px !important;
+    }
+
+    .gist-meta {
+        background-color: var(--syntax-bg) !important;
+    }
+    
+    .gist-data {
+        //background: var(--syntax-bg) !important;
+        background: none !important;
+        border-bottom: 0px !important;
+    }
+    
+    .highlight {
+        color: #333 !important;
+        background: var(--syntax-bg) !important;
+    }
+
+    body:not(.dark) .highlight {
+        color: #333 !important;
+        background: var(--syntax-bg) !important;
+    }
+
+    .blob-num {
+        background: var(--syntax-bg) !important;
+    }
+    
+    .blob-code {
+        color: var(--content);
+        //background: var(--syntax-bg) !important;
+        background: none !important;
+    
+        .pl-smi { color: var(--content); }  // variables
+        .pl-s { color: var(--content); }    // print values
+        .pl-pds { color: var(--content); }  // double quotes
+        .pl-c1 { color: #0a8; }           // commands
+    }
+    
+    .blob-code-inner {
+        color: var(--content) !important;
+    }
+}
