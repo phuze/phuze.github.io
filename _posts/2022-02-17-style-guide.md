@@ -1,6 +1,7 @@
 ---
 layout: post
 title: "Style Guide"
+sitemap: false
 ---
 
 "Come with me, keep quiet, an' keep yerself covered with that cloak," said Hagrid. "We won' take Fang, he won' like it. . . "Listen, Hagrid, I can't stay long. . . . I've got to be back up at the castle by one o'clock -" But Hagrid wasn't listening; he was opening the cabin door and striding off into the night.

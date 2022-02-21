@@ -29,6 +29,7 @@ plugins:
   - jekyll-toc
   - jekyll-gist
   - jemoji
+  - jekyll-sitemap
 
 # Permalinks
 permalink:      /:title
@@ -43,6 +44,7 @@ related_posts_settings:
 social:
   github: https://github.com/phuze
   linkedin: https://www.linkedin.com/in/brendon-larusic/
+  about: true
 
 # Config for the spaceship plugin
 # https://github.com/jeffreytse/jekyll-spaceship
