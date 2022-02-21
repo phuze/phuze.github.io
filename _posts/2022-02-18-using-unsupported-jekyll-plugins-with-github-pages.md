@@ -66,20 +66,7 @@ jobs:
         git push -f -u origin gh-pages
 {% endhighlight %}
 
-## Step 3: Commit the workflow
-
-Commit and push your workflow file to the `main` branch of your repository. This also serves to trigger our workflow action.
-
-## Step 4: Update repository settings
-
-Visit your repository on GitHub, navigate to `Settings > Pages`, then update your `Source` to your new deployment branch — `gh-pages`:
-
-![Image with caption](assets/pages-deploy-branch.png)
-_Found at https://github.com/{username}/{repository}/settings/pages_
-
-After a short wait, your website will be available again, along with any features driven by those unsupported plugins.
-
-## Understanding the Workflow
+### Understanding the Workflow
 
 Let's take a closer look at what's happening in this workflow:
 
@@ -150,3 +137,16 @@ git add .
 git commit -m "Deploy site built from commit {% raw %}${{ github.sha }}{% endraw %}"
 git push -f -u origin gh-pages
 {% endhighlight %}
+
+## Step 3: Commit the workflow
+
+Commit and push your workflow file to the `main` branch of your repository. This also serves to trigger our workflow action.
+
+## Step 4: Update repository settings
+
+Visit your repository on GitHub, navigate to `Settings > Pages`, then update your `Source` to your new deployment branch — `gh-pages`:
+
+![Image with caption](assets/pages-deploy-branch.png)
+_Found at https://github.com/{username}/{repository}/settings/pages_
+
+After a short wait, your website will be available again, along with any features driven by those unsupported plugins.

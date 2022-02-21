@@ -46,7 +46,7 @@ It’s worth noting that explicit FTPS uses port 21, where implicit FTPS uses po
 
 As described in this [FileZilla Wiki](https://wiki.filezilla-project.org/FTP_over_TLS#Explicit_vs_Implicit_FTPS){:target="_blank"}, Explicit mode is considered more modern. When also considering that most clients and software libraries assume port 21 as the default, Explicit is recommended over Implicit.
 
-When considering your FTP server, you can switch to implicit mode by listening on port 990 instead of 21, and enabling the [implicit_ssl](http://vsftpd.beasts.org/vsftpd_conf.html) option:
+You can switch to implicit mode by listening on port 990 instead of 21, and enabling the [implicit_ssl](http://vsftpd.beasts.org/vsftpd_conf.html) option in `vsftpd.conf`:
 
 {% highlight conf %}
 listen_port=990
@@ -67,7 +67,7 @@ You're going to need the following tools and software:
 
 - A linux-based virtual machine — I've used Ubuntu 20.04.
 - [__vsftpd__](https://help.ubuntu.com/community/vsftpd){:target="_blank"} (Very Secure FTP Daemon) — this is our FTP server software.
-- [__db-util__](https://packages.ubuntu.com/focal/db-util){:target="_blank"} — [Berkeley DB](https://www.oracle.com/database/technologies/related/berkeleydb.html){:target="_blank"} database utilities (this will be for our custom user database)
+- [__db-util__](https://packages.ubuntu.com/focal/db-util){:target="_blank"} — [Berkeley DB](https://www.oracle.com/database/technologies/related/berkeleydb.html){:target="_blank"} database utilities (this will be for our user database)
 - SSL certificate (if you plan on creating your own DNS record) — otherwise, we can generate a self-signed certificate.
 
 ## Step 1: Install `vsftpd` and `db-util`
@@ -267,7 +267,7 @@ sudo mkdir /etc/vsftpd
 
 ## Step 6: Create FTPS user database
 
-Rather than creating local users for FTPS, we're going to create virtual users — a feature of vsftpd. Virtual FTPS user will help enhance the security of our FTP server.
+Rather than creating local users for FTPS, we're going to create virtual users — a feature of vsftpd. Enabling virtual FTPS users will help enhance the security of our FTP server.
 
 First create a plain text file:
 
@@ -298,12 +298,18 @@ The arguments we're passing here are:
 
 - `-T` — allows non-Berkeley DB applications to easily load text files into databases.
 - `-t <method>` — specify the underlying access method (required when using `-T`). Here we're using the [Hash](https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html){:target="_blank"} access method, which is best suited for large data sets (ie: many users), where we aren't concerned about sequential access. The hash method is also more memory efficient, as we can typically access data with a single I/O operation (compared to [B-tree](https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html){:target="_blank"} for example).
-- `-f <file>` — read from the specified input file instead of STDIN.
+- `-f <file>` — read from the specified input file.
+- `<output>` — the last argument is our desired output DB file.
 
-Once you've created your user database, update its permissions. You should also delete the `users.txt` file, as we no longer require it and you should not keep plain-text passwords on your server.
+Once you've created your user database, update its permissions:
 
 {% highlight bash %}
 sudo chmod 0600 /etc/vsftpd/users.db
+{% endhighlight %}
+
+You should also delete `users.txt`, if you no longer need it:
+
+{% highlight bash %}
 sudo rm /etc/vsftpd/users.txt
 {% endhighlight %}
 
@@ -331,7 +337,7 @@ Here we're passing the `--shell <shell>` argument, which defines what shell is l
 
 In order to jail our users, which we'll accomplish using [chroot](http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html){:target="_blank"}, we need to set some very specific permissions, and make a few changes to our configuration files.
 
-First, make sure the owner of our FTPS parent directory, and all user subdirectories, matches our `guest_username`, which is defined in our `vsftpd.conf` config.
+First, make sure the owner of our FTPS parent directory, and all user subdirectories, matches our `guest_username`. The username is defined in our `vsftpd.conf` config, and in this case, it's `ftp`:
 
 {% highlight bash %}
 sudo chown -R ftp:ftp /home/vftp
@@ -364,7 +370,7 @@ Next, we need to make some configuration changes to our SSH service. Open the [s
 sudo nano /etc/ssh/sshd_config
 {% endhighlight %}
 
-Find this line:
+find this line:
 
 {% highlight bash %}
 Subsystem   sftp    /usr/lib/openssh/sftp-server
@@ -407,3 +413,27 @@ Lastly, lets set some required permissions — note that `0711` grants public ex
 sudo chown root:root /home/sftp
 sudo chmod 0711 /home/sftp
 {% endhighlight %}
+
+## User command script
+
+In order to easily manage your FTP users, we're going to create a command script to do the work for us. This script will enable you to:
+
+- List all existing users — `./path/to/users list`
+- Add a new user — `./path/to/users add <username> <password>`
+- Edit an existing user — `./path/to/users edit <username> <password>`
+- Delete a user — `./path/to/users del <username>`
+
+This script is written in Perl, and is largely just a series of linux commands. I've included links to some helpful documentation:
+
+- [Perl DB_File](https://perldoc.perl.org/DB_File){:target="_blank"}
+- [PAM_userdb](https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html){:target="_blank"}
+
+Create a new file — you can include the `.pl` extension if you prefer:
+
+{% highlight bash %}
+sudo nano /etc/vsftps/users
+{% endhighlight %}
+
+To help facilitate future updates, I've included the script as a [gist](https://gist.github.com/phuze/37e9312e262def17dbd8ac906651c48e){:target="_blank"}:
+
+{% gist 37e9312e262def17dbd8ac906651c48e %}
