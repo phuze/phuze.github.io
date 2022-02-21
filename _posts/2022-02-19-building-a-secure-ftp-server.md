@@ -434,6 +434,6 @@ Create a new file — you can include the `.pl` extension if you prefer:
 sudo nano /etc/vsftps/users
 {% endhighlight %}
 
-To help facilitate future updates, I've included the script as a [gist](https://gist.github.com/phuze/37e9312e262def17dbd8ac906651c48e){:target="_blank"}:
+To help facilitate future updates, I've included the script as a [gist](https://gist.github.com/phuze/8f66a26767500398d271b42013672536){:target="_blank"}:
 
-{% gist 37e9312e262def17dbd8ac906651c48e %}
+{% gist 8f66a26767500398d271b42013672536 %}
