@@ -66,7 +66,7 @@ jobs:
         git push -f -u origin gh-pages
 {% endhighlight %}
 
-### Understanding the Workflow
+### Understanding the workflow
 
 Let's take a closer look at what's happening in this workflow:
 
