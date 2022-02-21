@@ -17,7 +17,7 @@ A benefit of Jekyll, is it's seamless support for automated deployment, for free
 github-pages 223 | Error:  Liquid syntax error on line 28: Unknown tag
 {% endhighlight %}
 
-The reason — all GitHub Page sites are generated using the `[--safe]()` option to disable plugins (with the exception of some [whitelisted plugins](https://pages.github.com/versions/){:target="_blank"}). Unfortunately, this means many plugins won't work if you're deploying via GitHub Pages.
+The reason — all GitHub Page sites are generated using the `--safe` option to disable plugins (with the exception of some [whitelisted plugins](https://pages.github.com/versions/){:target="_blank"}). Unfortunately, this means many plugins won't work if you're deploying via GitHub Pages.
 
 The way to make use of unsupported plugins, is to build your website locally, instead of relying on GitHub's automated build and deploy process for Jekyll.
 
