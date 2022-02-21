@@ -13,9 +13,9 @@ comments: true
 toc: true
 ---
 
-{::nomarkdown}
-<div class="post-notice"><div class="post-notice-content">Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions. This article is in progress.</div></div>
-{:/nomarkdown}
+<!--NOTICE--{::nomarkdown}<div class="post-notice"><div class="post-notice-content">
+Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions. This article is in progress.
+</div></div>{:/nomarkdown}-->
 
 Building a secure FTP server should begin with a clear understanding of the mechanisms involved. When we talk about an FTP server, this commonly involves three protocols:
 
