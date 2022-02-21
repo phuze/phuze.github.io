@@ -17,14 +17,14 @@ jobs:
           -v ${{ github.workspace }}:/srv/jekyll \
           -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
           jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
-    - name: 🧪 Push the site to the deploy branch
+    - name: 🧪 Push the site to the gh-pages branch
       run: |
         sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site
         cd ${{ github.workspace }}/_site
-        git init -b deploy
+        git init -b gh-pages
         git config user.name ${{ github.actor }}
         git config user.email ${{ github.actor }}@users.noreply.github.com
         git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git
         git add .
         git commit -m "🧪 Deployed with commit ${{ github.sha }}"
-        git push -f -u origin deploy
+        git push -f -u origin gh-pages
