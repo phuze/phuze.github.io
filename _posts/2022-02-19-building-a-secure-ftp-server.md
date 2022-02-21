@@ -437,3 +437,13 @@ sudo nano /etc/vsftps/users
 To help facilitate future updates, I've included the script as a [gist](https://gist.github.com/phuze/8f66a26767500398d271b42013672536){:target="_blank"}:
 
 {% gist 8f66a26767500398d271b42013672536 %}
+
+## Remote control over API
+
+As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script.
+
+Here's an example model I've written in PHP. It makes use of the [phpseclib](https://github.com/phpseclib/phpseclib) library.
+
+To help facilitate future updates, I've included the model as a [gist](https://gist.github.com/phuze/a0ec4cb4a79c15ec260bb532bb6c5536){:target="_blank"}:
+
+{% gist a0ec4cb4a79c15ec260bb532bb6c5536 %}
