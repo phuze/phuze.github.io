@@ -1,7 +1,7 @@
 # Site settings
 title:        Phuze
 tagline:      "Internet Wizard."
-description:  "Internet Wizard."
+description:  "Document all the things."
 url:          https://phuze.dev
 logo:         /assets/favicon.png
 lang:         en
