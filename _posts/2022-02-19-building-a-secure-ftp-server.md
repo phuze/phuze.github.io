@@ -434,15 +434,17 @@ Create a new file — you can include the `.pl` extension if you prefer:
 sudo nano /etc/vsftps/users
 {% endhighlight %}
 
-To help facilitate future updates, I've included the script as a [gist](https://gist.github.com/phuze/8f66a26767500398d271b42013672536){:target="_blank"}:
+To help facilitate future updates, i'll include the script as a gist:
 
-{% gist 8f66a26767500398d271b42013672536 %}
+- 🤖 [users.pl](https://gist.github.com/phuze/8f66a26767500398d271b42013672536){:target="_blank"} — Perl script for managing users in a Berkeley DB within a Linux environment.
+
+<!--{% gist 8f66a26767500398d271b42013672536 %}-->
 
 ## Remote control over API
 
-As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script.
+As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script. You can then build a graphical interface to manage your FTP users.
 
-Here's a quick example written in PHP, that makes use of [phpseclib](https://github.com/phpseclib/phpseclib){:target="_blank"}:
+Here's a quick example written in PHP, which makes use of [phpseclib](https://github.com/phpseclib/phpseclib){:target="_blank"}:
 
 {% highlight php %}
 namespace MyApi\Models;
