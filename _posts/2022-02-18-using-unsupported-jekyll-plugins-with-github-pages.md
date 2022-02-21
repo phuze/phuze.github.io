@@ -1,14 +1,11 @@
 ---
 layout: post
 title: "How to Use Unsupported Jekyll Plugins with GitHub Pages"
-tags:
-  - Jekyll
-  - Jekyll 4.2.1
-  - GitHub Pages
-resources:
-  - https://github.com/victoriadrake/jekyll-cd
+tags: ["Jekyll", "Jekyll 4.2.1", "GitHub Pages"]
 comments: true
 toc: true
+resources:
+  - https://github.com/victoriadrake/jekyll-cd
 ---
 
 A benefit of Jekyll, is it's seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you're more likely to encounter unsupported plugins when trying to deploy to GitHub:

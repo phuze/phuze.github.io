@@ -1,14 +1,7 @@
 ---
 layout: post
 title: "Building a Secure FTP Server"
-tags: 
-  - Linux
-  - Security
-  - Ubuntu
-  - Ubuntu 20.04
-  - FTP
-  - FTPS
-  - SFTP
+tags: ["Linux","Security","Ubuntu","Ubuntu 20.04","FTP","FTPS","SFTP"]
 comments: true
 toc: true
 ---
