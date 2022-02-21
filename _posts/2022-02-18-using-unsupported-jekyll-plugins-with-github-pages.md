@@ -5,6 +5,8 @@ tags:
   - Jekyll
   - Jekyll 4.2.1
   - GitHub Pages
+resources:
+  - https://github.com/victoriadrake/jekyll-cd
 comments: true
 toc: true
 ---
@@ -15,7 +17,7 @@ A benefit of Jekyll, is it's seamless support for automated deployment, for free
 github-pages 223 | Error:  Liquid syntax error on line 28: Unknown tag
 {% endhighlight %}
 
-The reason — all GitHub Page sites are generated using the `--safe` option to disable plugins (with the exception of some [whitelisted plugins](https://pages.github.com/versions/){:target="_blank"}). Unfortunately, this means many plugins won't work if you're deploying via GitHub Pages.
+The reason — all GitHub Page sites are generated using the `[--safe]()` option to disable plugins (with the exception of some [whitelisted plugins](https://pages.github.com/versions/){:target="_blank"}). Unfortunately, this means many plugins won't work if you're deploying via GitHub Pages.
 
 The way to make use of unsupported plugins, is to build your website locally, instead of relying on GitHub's automated build and deploy process for Jekyll.
 
@@ -29,7 +31,7 @@ gem 'jekyll'
 
 ## Step 2: Create a GitHub action workflow
 
-In your project, create a new workflow file `/.github/workflows/deploy.yml`. This workflow will create a new `gh-pages` branch for deployment. Find and change this if you prefer a different branch name:
+In your project, create a new workflow file `~/.github/workflows/deploy.yml`. This workflow will create a new `deploy` branch for deployment. Find and change this if you prefer a different branch name:
 
 {% highlight yaml %}
 name: build and deploy
@@ -51,20 +53,33 @@ jobs:
           -v {% raw %}${{ github.workspace }}{% endraw %}:/srv/jekyll \
           -v {% raw %}${{ github.workspace }}{% endraw %}/_site:/srv/jekyll/_site \
           jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && chmod -R 777 /usr/gem && jekyll build"
-    - name: 🧪 Push the site to the gh-pages branch
+    - name: 🧪 Push the site to the deploy branch
       run: |
         sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
         cd {% raw %}${{ github.workspace }}{% endraw %}/_site
-        git init -b gh-pages
+        git init -b deploy
         git config user.name {% raw %}${{ github.actor }}{% endraw %}
         git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
         git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
         git add .
         git commit -m "🧪 Deployed with commit {% raw %}${{ github.sha }}{% endraw %}"
-        git push -f -u origin gh-pages
+        git push -f -u origin deploy
 {% endhighlight %}
 
-### Understanding the Workflow
+## Step 3: Commit the workflow
+
+Commit and push your workflow file to the `main` branch of your repository. This also serves to trigger our workflow action.
+
+## Step 4: Update repository settings
+
+Visit your repository on GitHub, navigate to `Settings > Pages`, then update your `Source` to your new deployment branch — `deploy`:
+
+![Image with caption](assets/pages-deploy-branch.png)
+_Found at https://github.com/{username}/{repository}/settings/pages_
+
+After a short wait, your website will be available again, along with any features driven by those unsupported plugins.
+
+## Understanding the Workflow
 
 Let's take a closer look at what's happening in this workflow:
 
@@ -99,17 +114,17 @@ It is necessary to grant public read/write permissions to both the `/srv/jekyll`
 The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by pushing our build changes to our deployment branch.
 
 {% highlight yaml %}
-- name: 🧪 Push the site to the gh-pages branch
+- name: 🧪 Push the site to the deploy branch
   run: |
     sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_site
     cd {% raw %}${{ github.workspace }}{% endraw %}/_site
-    git init -b gh-pages
+    git init -b deploy
     git config user.name {% raw %}${{ github.actor }}{% endraw %}
     git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
     git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
     git add .
     git commit -m "🧪 Deployed with commit {% raw %}${{ github.sha }}{% endraw %}"
-    git push -f -u origin gh-pages
+    git push -f -u origin deploy
 {% endhighlight %}
 
 First we make sure our workspace environment has ownership over our build directory (`/_site`), then enter it:
@@ -119,32 +134,19 @@ sudo chown $(whoami):$(whoami) {% raw %}${{ github.workspace }}{% endraw %}/_sit
 cd {% raw %}${{ github.workspace }}{% endraw %}/_site
 {% endhighlight %}
 
-Next we initialize a new repository, along with a new `gh-pages` branch we'll use as our deployment branch:
+Next we initialize a new repository, along with a new `deploy` branch we'll use as our deployment branch:
 
 {% highlight yaml %}
-git init -b gh-pages
+git init -b deploy
 git config user.name {% raw %}${{ github.actor }}{% endraw %}
 git config user.email {% raw %}${{ github.actor }}{% endraw %}@users.noreply.github.com
 git remote add origin https://x-access-token:{% raw %}${{ github.token }}{% endraw %}@github.com/{% raw %}${{ github.repository }}{% endraw %}.git
 {% endhighlight %}
 
-Lastly, we commit our built website files to our `gh-pages` branch:
+Lastly, we commit our built website files to our `deploy` branch:
 
 {% highlight yaml %}
 git add .
 git commit -m "Deploy site built from commit {% raw %}${{ github.sha }}{% endraw %}"
-git push -f -u origin gh-pages
+git push -f -u origin deploy
 {% endhighlight %}
-
-## Step 3: Commit the workflow
-
-Go ahead and commit your workflow file. This also serves to trigger our workflow action.
-
-## Step 4: Update repository settings
-
-You should now have a built project and a new branch named `gh-pages`. Visit your repository on GitHub, choose `Settings > Pages`, then change your `Source` to your new deployment branch:
-
-![Image with caption](assets/pages-deploy-branch.png)
-_Found at https://github.com/{username}/{repository}/settings/pages_
-
-After a short wait, your website should now be available again, along with any features driven by those unsupported plugins.
