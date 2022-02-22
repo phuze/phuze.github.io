@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/main.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+
+    <!-- RSS -->
+    <link type="application/atom+xml" rel="alternate" href="https://phuze.dev/feed.xml" title="Phuze">
+
+    <!-- SEO -->
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>Building a Secure FTP Server | Phuze</title>
+<meta name="generator" content="Jekyll v4.2.1">
+<meta property="og:title" content="Building a Secure FTP Server">
+<meta name="author" content="Brendon LaRusic">
+<meta property="og:locale" content="en">
+<meta name="description" content="Document all the things.">
+<meta property="og:description" content="Document all the things.">
+<link rel="canonical" href="https://phuze.dev/building-a-secure-ftp-server">
+<meta property="og:url" content="https://phuze.dev/building-a-secure-ftp-server">
+<meta property="og:site_name" content="Phuze">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2022-02-19T00:00:00-06:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="Building a Secure FTP Server">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Brendon LaRusic","url":"https://phuze.dev"},"dateModified":"2022-02-19T00:00:00-06:00","datePublished":"2022-02-19T00:00:00-06:00","description":"Document all the things.","headline":"Building a Secure FTP Server","mainEntityOfPage":{"@type":"WebPage","@id":"https://phuze.dev/building-a-secure-ftp-server"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://phuze.dev/assets/favicon.png"},"name":"Brendon LaRusic"},"url":"https://phuze.dev/building-a-secure-ftp-server"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+
+        <div class="title-container">
+          <!-- blog title -->
+          <a href="/">
+            <h2 class="nav-title">Phuze</h2>
+          </a>
+
+          <!-- light/dark mode -->
+          <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+            <svg id="moon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 640 512" fill="currentcolor"><path d="M636.3 367.6c-5.566-9.406-16.14-14.16-26.78-12.09c-43.04 8.25-87.01-3.094-120.7-31.09c-33.71-28.03-53.02-69.28-53.02-113.2c0-52.72 28.36-101.7 74.01-127.8c9.455-5.375 14.4-15.84 12.6-26.66C520.6 46 512.5 37.72 501.8 35.72C490.4 33.63 472.5 32 461.1 32c-89.84 0-170.3 54.34-205.1 138.4C252.6 178.6 256.4 187.9 264.6 191.3c8.053 3.438 17.41-.4687 20.8-8.656C315.2 110.6 384.2 64 461.1 64c4.945 0 11.66 .4062 18.29 1.031C432.5 98.34 403.9 152.9 403.9 211.3c0 53.47 23.54 103.7 64.56 137.8c36.57 30.44 83.1 44.78 129.1 40.31C562.6 426.8 513.3 448 461.1 448c-51.41 0-99.79-20.62-136.2-58.06c-6.094-6.344-16.17-6.406-22.51-.25C296 395.9 295.9 406 302.1 412.3C344.5 455.1 401 480 461.1 480c67.45 0 130.6-30.22 173.2-82.94C641.1 388.6 641.9 377 636.3 367.6zM237.1 217.6C221 183.5 186.5 160 147.3 160C105.7 160 70.03 185.3 55.23 222.5C22.89 233.9 0 264.6 0 300.8C0 346.8 37.07 384 82.85 384h152.8c45.78 0 82.85-37.25 82.85-83.25C318.4 255.4 282 218.4 237.1 217.6zM235.6 352H82.85c-28.24 0-51-22.88-51-51.25c0-27.5 21.64-49.75 48.76-51C85.46 217.1 113.3 192 147.3 192c35.58 0 64.44 27.75 67.17 62.88c6.467-3.125 13.56-5.25 21.15-5.25c28.24 0 51 22.88 51 51.13C286.6 329.1 263.8 352 235.6 352z"></path></svg>
+            <svg id="sun" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512" fill="currentcolor"><path d="M256 112C247.2 112 240 104.8 240 96V16C240 7.156 247.2 0 256 0s16 7.156 16 16V96C272 104.8 264.8 112 256 112zM272 496V416c0-8.844-7.156-16-16-16S240 407.2 240 416v80c0 8.844 7.156 16 16 16S272 504.8 272 496zM512 256c0-8.844-7.156-16-16-16H416c-8.844 0-16 7.156-16 16s7.156 16 16 16h80C504.8 272 512 264.8 512 256zM112 256c0-8.844-7.156-16-16-16H16C7.156 240 0 247.2 0 256s7.156 16 16 16H96C104.8 272 112 264.8 112 256zM380.5 154.2l56.56-56.59c6.25-6.25 6.25-16.38 0-22.62s-16.38-6.25-22.62 0l-56.56 56.59c-6.25 6.25-6.25 16.37 0 22.62c3.125 3.125 7.219 4.691 11.31 4.691S377.3 157.3 380.5 154.2zM97.61 437l56.56-56.59c6.25-6.25 6.25-16.37 0-22.62s-16.38-6.253-22.62-.0031l-56.56 56.59c-6.25 6.25-6.25 16.38 0 22.62c3.125 3.125 7.219 4.688 11.31 4.688S94.48 440.2 97.61 437zM437 437c6.25-6.25 6.25-16.38 0-22.62l-56.56-56.59c-6.25-6.25-16.38-6.247-22.62 .0031s-6.25 16.37 0 22.62l56.56 56.59c3.125 3.125 7.219 4.688 11.31 4.688S433.9 440.2 437 437zM154.2 154.2c6.25-6.25 6.25-16.37 0-22.62L97.61 74.97c-6.25-6.25-16.38-6.25-22.62 0s-6.25 16.38 0 22.62l56.56 56.59c3.125 3.125 7.219 4.688 11.31 4.688S151 157.3 154.2 154.2zM368 256c0-61.75-50.25-112-112-112S144 194.3 144 256s50.25 112 112 112S368 317.8 368 256zM336 256c0 44.13-35.89 80-80 80S176 300.1 176 256S211.9 176 256 176S336 211.9 336 256z"></path></svg>
+          </button>
+        </div>
+
+        <!-- table of contents (for posts) -->
+        
+        <ul class="tocbox">
+          <li class="menu-item">
+              <a href="#" id="toc-btn">Table of Contents</a>
+              <div id="tocwrap" class="tocwrap">
+                <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h3"><a href="#implicit--vs--explicit-in-filezilla">Implicit -vs- Explicit in FileZilla</a></li>
+<li class="toc-entry toc-h2"><a href="#getting-started">Getting Started</a></li>
+<li class="toc-entry toc-h2"><a href="#step-1-install-vsftpd-and-db-util">Step 1: Install vsftpd and db-util</a></li>
+<li class="toc-entry toc-h2"><a href="#step-2-configure-vsftpd">Step 2: Configure vsftpd</a></li>
+<li class="toc-entry toc-h2"><a href="#step-3-configuring-firewalls">Step 3: Configuring firewalls</a></li>
+<li class="toc-entry toc-h2"><a href="#step-4-create-a-new-pam-service">Step 4: Create a new PAM service</a></li>
+<li class="toc-entry toc-h2"><a href="#step-5-create-service-directories">Step 5: Create service directories</a></li>
+<li class="toc-entry toc-h2"><a href="#step-6-create-ftps-user-database">Step 6: Create FTPS user database</a></li>
+<li class="toc-entry toc-h2"><a href="#step-7-create-user-directories">Step 7: Create user directories</a></li>
+<li class="toc-entry toc-h2"><a href="#step-8-create-sftp-users">Step 8: Create SFTP users</a></li>
+<li class="toc-entry toc-h2"><a href="#step-9-jailing-ftps-users">Step 9: Jailing FTPS users</a></li>
+<li class="toc-entry toc-h2"><a href="#step-10-jailing-sftp-users">Step 10: Jailing SFTP users</a></li>
+<li class="toc-entry toc-h2"><a href="#user-command-script">User command script</a></li>
+<li class="toc-entry toc-h2"><a href="#remote-control-over-api">Remote control over API</a></li>
+</ul>
+              </div>
+          </li>
+        </ul>
+        
+
+        <!-- social icons -->
+        <ul class="nav-social-icons">
+          
+          
+            <li>
+              <a target="_blank" href="https://github.com/phuze">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 480 512" fill="currentcolor"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"></path></svg>
+              </a>
+            </li>
+          
+          
+          
+            <li>
+              <a target="_blank" href="https://www.linkedin.com/in/brendon-larusic/">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512" fill="currentcolor"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"></path></svg>
+              </a>
+            </li>
+          
+          
+        </ul>
+      </div>
+    </nav>
+
+    <div class="flex-wrapper">
+      <main>
+        <div class="post">
+
+  <div class="post-info">
+    
+      <time datetime="2022-02-19 00:00:00 -0600">February 19, 2022</time>
+    
+  </div>
+  <div class="post-tags">
+    
+      
+        <span class="post-tag">Linux</span>
+      
+        <span class="post-tag">Security</span>
+      
+        <span class="post-tag">Ubuntu</span>
+      
+        <span class="post-tag">Ubuntu 20.04</span>
+      
+        <span class="post-tag">FTP</span>
+      
+        <span class="post-tag">FTPS</span>
+      
+        <span class="post-tag">SFTP</span>
+      
+    
+  </div>
+  <h1 class="post-title">
+    <div>Building a Secure FTP Server</div>
+  </h1>
+  
+  <hr class="post-break">
+
+  <!--NOTICE--{::nomarkdown}<div class="post-notice"><div class="post-notice-content">
+Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions. This article is in progress.
+</div></div>{:/nomarkdown}-->
+
+<p>Building a secure FTP server should begin with a clear understanding of the mechanisms involved. When we talk about an FTP server, this commonly involves three protocols:</p>
+
+<ol>
+  <li>
+<a href="https://en.wikipedia.org/wiki/File_Transfer_Protocol" target="_blank"><strong>FTP</strong></a> — File Transfer Protocol. This is your basic protocol for transferring files.</li>
+  <li>
+<a href="https://en.wikipedia.org/wiki/FTPS" target="_blank"><strong>FTPS</strong></a> — FTP over SSL, or FTP Secure. This is an extension to the basic FTP protocol, which adds support for <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security" target="_blank">TLS</a> (Transport Layer Security).</li>
+  <li>
+<a href="https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol" target="_blank"><strong>SFTP</strong></a> — While the acronym is similar, this is SSH File Transfer Protocol, and it operates unrelated to both FTP and FTPS.</li>
+</ol>
+
+<p>Deciding which protocols work best for you, depends largely on your project. There should almost never be a need to support basic FTP. The exception might be if you needed a simple file transfer solution between servers that exist within a private local network. Otherwise, using FTP is akin to serving an application over HTTP instead of HTTPS.</p>
+
+<p>Let’s explore some of the key differences between each protocol.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th> </th>
+        <th style="text-align: center">FTP</th>
+        <th style="text-align: center">FTPS</th>
+        <th style="text-align: center">SFTP</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Command Port</td>
+        <td>21</td>
+        <td>990</td>
+        <td>22</td>
+      </tr>
+      <tr>
+        <td>Data Port</td>
+        <td>20</td>
+        <td>989 (active mode) — passive mode is user defined, but by default any port 0—65535</td>
+        <td>22</td>
+      </tr>
+      <tr>
+        <td>Security</td>
+        <td style="text-align: center">Basic FTP doesn’t encrypt any communication between the client and the server</td>
+        <td style="text-align: center">Command and data channels are encrypted only if the client issues the necessary <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">AUTH</a> and <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">PROT</a> commands</td>
+        <td style="text-align: center">Relies on SSH for data encryption over the wire - commands and data are always encrypted</td>
+      </tr>
+      <tr>
+        <td>Connections</td>
+        <td colspan="2" style="text-align: center">At least 2: one port to issue commands and a separate port for data</td>
+        <td style="text-align: center">Only 1 is required (commands and data use the same connection)</td>
+        
+      </tr>
+      <tr>
+        <td>Pros</td>
+        <td style="text-align: center">Anonymous FTP access in browser, and slightly faster due to having no encryption overhead</td>
+        <td style="text-align: center">Widely known and supported, with better support for server-to-server file transfers</td>
+        <td style="text-align: center">Commands and data are always encrypted, and is backed by solid standards</td>
+      </tr>
+      <tr>
+        <td>Cons</td>
+        <td style="text-align: center">Connection details and data is transmitted in clear text</td>
+        <td style="text-align: center">Requires a secondary DATA channel, which makes it harder to use behind firewalls and NATs</td>
+        <td style="text-align: center">Limited server-to-server options, dependent on environment and application</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<div class="post-notice">
+<div class="post-notice-icon"><svg aria-hidden="true" focusable="false" data-prefix="fad" data-icon="info-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512" class="fa-fw fa-2x svg-inline--fa fa-info-circle fa-w-16"><g class="fa-group"><path fill="#98b3c6" d="M256 8C119 8 8 119.08 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 110a42 42 0 1 1-42 42 42 42 0 0 1 42-42zm56 254a12 12 0 0 1-12 12h-88a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h12v-64h-12a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h64a12 12 0 0 1 12 12v100h12a12 12 0 0 1 12 12z" class="fa-secondary"></path><path fill="#305977" d="M256 202a42 42 0 1 0-42-42 42 42 0 0 0 42 42zm44 134h-12V236a12 12 0 0 0-12-12h-64a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h12v64h-12a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h88a12 12 0 0 0 12-12v-24a12 12 0 0 0-12-12z" class="fa-primary"></path></g></svg></div>
+<div class="post-notice-content">Tip: To use FTPS in <a href="https://filezilla-project.org/" target="_blank">FileZilla</a>, set the Encryption option to: <em>Require explicit FTP over TLS</em>.</div>
+</div>
+
+<h3 id="implicit--vs--explicit-in-filezilla">Implicit -vs- Explicit in FileZilla</h3>
+
+<p>It’s worth noting that explicit FTPS uses port 21, where implicit FTPS uses port 990. With <em>explicit</em> mode, clients initially connect to the standard FTP port (21), and then upgrades the connection into secure FTPS mode (990), by issuing an <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">AUTH</a> command. By comparison, with <em>implicit mode</em>, its assumed the connection is always encrypted from the beginning.</p>
+
+<p>As described in this <a href="https://wiki.filezilla-project.org/FTP_over_TLS#Explicit_vs_Implicit_FTPS" target="_blank">FileZilla Wiki</a>, Explicit mode is considered more modern. When also considering that most clients and software libraries assume port 21 as the default, Explicit is recommended over Implicit.</p>
+
+<p>You can switch to implicit mode by listening on port 990 instead of 21, and enabling the <a href="http://vsftpd.beasts.org/vsftpd_conf.html">implicit_ssl</a> option in <code class="language-plaintext highlighter-rouge">vsftpd.conf</code>:</p>
+
+<figure class="highlight"><pre><code class="language-conf" data-lang="conf"><span class="n">listen_port</span>=<span class="m">990</span>
+<span class="n">implicit_ssl</span>=<span class="n">YES</span></code></pre></figure>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>I’m going to show you how to build a secure FTP server with the following features:</p>
+
+<ul>
+  <li>Support for both FTPS and SFTP to maximize integration options for third-parties.</li>
+  <li>Virtual FTPS users with custom authentication using a Berkeley DB database.</li>
+  <li>Jailed user environments, so that users cannot access any files or directories outside of their own dedicated folders.</li>
+  <li>Shell-less SFTP users, so that users can only perform file transfer operations.</li>
+  <li>A command script for easy user management.</li>
+</ul>
+
+<p>You’re going to need the following tools and software:</p>
+
+<ul>
+  <li>A linux-based virtual machine — I’ve used Ubuntu 20.04.</li>
+  <li>
+<a href="https://help.ubuntu.com/community/vsftpd" target="_blank"><strong>vsftpd</strong></a> (Very Secure FTP Daemon) — this is our FTP server software.</li>
+  <li>
+<a href="https://packages.ubuntu.com/focal/db-util" target="_blank"><strong>db-util</strong></a> — <a href="https://www.oracle.com/database/technologies/related/berkeleydb.html" target="_blank">Berkeley DB</a> database utilities (this will be for our user database)</li>
+  <li>SSL certificate (if you plan on creating your own DNS record) — otherwise, we can generate a self-signed certificate.</li>
+</ul>
+
+<h2 id="step-1-install-vsftpd-and-db-util">Step 1: Install <code class="language-plaintext highlighter-rouge">vsftpd</code> and <code class="language-plaintext highlighter-rouge">db-util</code>
+</h2>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>vsftpd db-util</code></pre></figure>
+
+<h2 id="step-2-configure-vsftpd">Step 2: Configure <code class="language-plaintext highlighter-rouge">vsftpd</code>
+</h2>
+
+<p>Open the configuration file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftpd.conf</code></pre></figure>
+
+<p>and replace the entire contents with the configuration below. I’ve added comments describing what each of the options are for. If you’re looking for additional information, I recommend the <a href="https://web.mit.edu/rhel-doc/5/RHEL-5-manual/Deployment_Guide-en-US/s1-ftp-vsftpd-conf.html" target="_blank">Red Hat Documentation</a> on vsftpd, as well as Ubuntu’s <a href="https://help.ubuntu.com/community/vsftpd" target="_blank">community help wiki</a>.</p>
+
+<p>Be sure to look at the <code class="language-plaintext highlighter-rouge">pasv_address</code>, <code class="language-plaintext highlighter-rouge">rsa_cert_file</code> and <code class="language-plaintext highlighter-rouge">rsa_private_key_file</code> options at the bottom. You will need to update these values related to your own server.</p>
+
+<figure class="highlight"><pre><code class="language-conf" data-lang="conf"><span class="c"># run vsftpd in stand-alone mode
+</span><span class="n">listen</span>=<span class="n">YES</span>
+<span class="n">listen_port</span>=<span class="m">21</span>
+
+<span class="c"># disable IPv6 (cannot be used with stand-alone mode)
+</span><span class="n">listen_ipv6</span>=<span class="n">NO</span>
+
+<span class="c"># enable connection level logging (helps with troubleshooting)
+# default log location: /var/log/vsftpd.log
+</span><span class="n">xferlog_enable</span>=<span class="n">YES</span>
+<span class="n">xferlog_std_format</span>=<span class="n">NO</span>
+<span class="n">log_ftp_protocol</span>=<span class="n">YES</span>
+
+<span class="c"># disable anonymous access
+</span><span class="n">anonymous_enable</span>=<span class="n">NO</span>
+
+<span class="c"># enable local accounts
+</span><span class="n">local_enable</span>=<span class="n">YES</span>
+
+<span class="c"># enable virtual users
+</span><span class="n">guest_enable</span>=<span class="n">YES</span>
+<span class="n">guest_username</span>=<span class="n">ftp</span>
+
+<span class="c"># default umask for local users
+# 022 allows only our local user to write, but anyone can read
+# 077 is completely private, no other user can read or write
+</span><span class="n">local_umask</span>=<span class="m">077</span>
+
+<span class="c"># virtual users will have the same privileges
+# as our local guest account
+</span><span class="n">virtual_use_local_privs</span>=<span class="n">YES</span>
+
+<span class="c"># write permissions for users
+</span><span class="n">write_enable</span>=<span class="n">YES</span>
+<span class="n">allow_writeable_chroot</span>=<span class="n">YES</span>
+
+<span class="c"># virtual user directory
+</span><span class="n">local_root</span>=/<span class="n">home</span>/<span class="n">vftp</span>/$<span class="n">USER</span>
+
+<span class="c"># automatically generate a home directory for each virtual user
+</span><span class="n">user_sub_token</span>=$<span class="n">USER</span>
+
+<span class="c"># jail all users by default
+</span><span class="n">chroot_local_user</span>=<span class="n">YES</span>
+<span class="n">chroot_list_enable</span>=<span class="n">NO</span>
+<span class="n">secure_chroot_dir</span>=/<span class="n">var</span>/<span class="n">run</span>/<span class="n">vsftpd</span>/<span class="n">empty</span>
+
+<span class="c"># hide info about file owner (user and group)
+</span><span class="n">hide_ids</span>=<span class="n">YES</span>
+
+<span class="c"># miscellaneous options
+</span><span class="n">dirmessage_enable</span>=<span class="n">YES</span>
+<span class="n">use_localtime</span>=<span class="n">YES</span>
+
+<span class="c"># allow active mode connections
+</span><span class="n">port_enable</span>=<span class="n">YES</span>
+<span class="n">connect_from_port_20</span>=<span class="n">YES</span>
+<span class="n">ftp_data_port</span>=<span class="m">20</span>
+
+<span class="c"># use the virtual PAM service
+</span><span class="n">pam_service_name</span>=<span class="n">vsftpd</span>.<span class="n">virtual</span>
+
+<span class="c"># set max connections and idle timeout
+# to help against DoS attacks
+</span><span class="n">max_per_ip</span>=<span class="m">3</span>
+<span class="n">idle_session_timeout</span>=<span class="m">300</span>
+
+<span class="c"># passive mode configuration
+# enter your own servers public IP address
+</span><span class="n">pasv_address</span>=<span class="m">0</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">0</span>
+<span class="n">pasv_min_port</span>=<span class="m">50000</span>
+<span class="n">pasv_max_port</span>=<span class="m">50999</span>
+<span class="n">pasv_promiscuous</span>=<span class="n">YES</span>
+<span class="n">pasv_enable</span>=<span class="n">YES</span>
+
+<span class="c"># SSL
+</span><span class="n">ssl_enable</span>=<span class="n">YES</span>
+<span class="n">allow_anon_ssl</span>=<span class="n">NO</span>
+<span class="n">force_local_data_ssl</span>=<span class="n">YES</span>
+<span class="n">force_local_logins_ssl</span>=<span class="n">YES</span>
+<span class="n">ssl_tlsv1</span>=<span class="n">YES</span>
+<span class="n">ssl_sslv2</span>=<span class="n">NO</span>
+<span class="n">ssl_sslv3</span>=<span class="n">NO</span>
+<span class="n">rsa_cert_file</span>=/<span class="n">path</span>/<span class="n">to</span>/<span class="n">bundle</span>.<span class="n">crt</span>
+<span class="n">rsa_private_key_file</span>=/<span class="n">path</span>/<span class="n">to</span>/<span class="n">cert</span>.<span class="n">key</span></code></pre></figure>
+
+<h2 id="step-3-configuring-firewalls">Step 3: Configuring firewalls</h2>
+
+<p>In passive mode, the client initiates a <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">PASV</a> command to the server, which requests an available port for data transmission. By default, vsftpd does not limit the port range, meaning a client could be returned a port anywhere between 0—65535.</p>
+
+<p>Instead, we’ve defined a data port range between 50000—50999 in our <code class="language-plaintext highlighter-rouge">vsftpd.conf</code>, which gives us 999 available data ports for clients. If you anticipate having significant numbers of concurrent users, consider increasing this range.</p>
+
+<p>Now that we’ve defined an explicit range, we need to allow this range of ports in our firewall. If you’re using <a href="https://portal.azure.com/" target="_blank">Microsoft Azure</a>, apply these rules to a Network Security Group that covers your FTP server. If you’re using Ubuntu’s <a href="https://help.ubuntu.com/community/UFW" target="_blank">Uncomplicated Firewall (UFW)</a>, first make sure its enabled:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw status</code></pre></figure>
+
+<p>enable it if you need to:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw <span class="nb">enable</span></code></pre></figure>
+
+<p>then allow the TCP port range we defined in our <code class="language-plaintext highlighter-rouge">vsftp.conf</code> config:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw allow 50000:50999/tcp</code></pre></figure>
+
+<p>In addition, we must also allow default ports common to the FTPS and SFTP protocols. Again, if you’re using Azure, apply these rules to a Network Security Group. Otherwise, update your Ubuntu firewall:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw allow 20,21,22,989,990/tcp</code></pre></figure>
+
+<p>Here is a recap of the ports we’re allowing:</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">20</code> — FTP data channel</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">21</code> — FTP command channel</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">22</code> — SSH</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">989</code> — FTPS data channel (active mode)</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">990</code> — FTPS command channel</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">50000—50999</code> — FTPS data channels (passive mode)</li>
+</ul>
+
+<h2 id="step-4-create-a-new-pam-service">Step 4: Create a new PAM service</h2>
+
+<p>PAM (short for Pluggable Authentication Modules), is a powerful suite of libraries that allow us to dynamically authenticate users in a Linux-based system. We’re going to use the <a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html" target="_blank">pam_userdb</a> module which will allow us to authenticate against a DB database.</p>
+
+<p>Create a new PAM file that will use our new database (you’ll create the database in step 6):</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/pam.d/vsftpd.virtual</code></pre></figure>
+
+<p>and save the following:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#%PAM-1.0</span>
+auth       required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users
+account    required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users
+session    required     pam_loginuid.so</code></pre></figure>
+
+<p>Note that the path to the database file should be specified without the <code class="language-plaintext highlighter-rouge">.db</code> suffix.</p>
+
+<p>As an extra, <code class="language-plaintext highlighter-rouge">pam_userdb</code> allows us to define whether passwords stored in our user database, are encrypted, by passing an additional <a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html#OPTIONS" target="_blank">crypt</a> option.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#%PAM-1.0</span>
+auth       required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users <span class="nv">crypt</span><span class="o">=</span>crypt
+account    required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users <span class="nv">crypt</span><span class="o">=</span>crypt
+session    required     pam_loginuid.so</code></pre></figure>
+
+<p>It’s important to know, if you choose this option, passwords must be stored in <a href="http://www.linux-pam.org/Linux-PAM-html/sag-pam_userdb.html">crypt(3)</a> form. The <code class="language-plaintext highlighter-rouge">crypt()</code> function relies on the legacy DES (Data Encryption Standard) algorithm, which only supports a maximum password length of 8 characters. This is not often expressly pointed out, but is described in the related <a href="Source:%20https://man7.org/linux/man-pages/man3/crypt.3.html">manual</a>:</p>
+
+<blockquote>
+  <p>By taking the lowest 7 bits of each of the first eight characters of the key, a 56-bit key is obtained.  This 56-bit key is used to encrypt repeatedly a constant string (usually a string consisting of all zeros).</p>
+</blockquote>
+
+<h2 id="step-5-create-service-directories">Step 5: Create service directories</h2>
+
+<p>We’re going to need some directories where user content will live. It is important that user directories are created inside a parent directory, which will act as our jail. We’ll also need a place to keep our virtual user database.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># directory for our virtual FTPS users</span>
+<span class="nb">sudo mkdir</span> /home/vftp
+
+<span class="c"># directory for our local SFTP users</span>
+<span class="nb">sudo mkdir</span> /home/sftp
+
+<span class="c"># directory to store our user database</span>
+<span class="nb">sudo mkdir</span> /etc/vsftpd</code></pre></figure>
+
+<h2 id="step-6-create-ftps-user-database">Step 6: Create FTPS user database</h2>
+
+<p>Rather than creating local users for FTPS, we’re going to create virtual users — a feature of vsftpd. Enabling virtual FTPS users will help enhance the security of our FTP server.</p>
+
+<p>First create a plain text file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftpd/users.txt</code></pre></figure>
+
+<p>then enter your usernames and passwords on alternating lines, as described in the <a href="https://manpages.ubuntu.com/manpages/focal/en/man1/db_load.1.html" target="_blank">db_load</a> documentation:</p>
+
+<blockquote>
+  <p>If the database to be created is of type Btree or Hash, or the keyword keys is specified as set, the input must be paired lines of text, where the first line of the pair is the key item, and the second line of the pair is its corresponding data item.</p>
+</blockquote>
+
+<p>For example, we’re going to create the users <code class="language-plaintext highlighter-rouge">batman</code> with password <code class="language-plaintext highlighter-rouge">bat!</code>, and <code class="language-plaintext highlighter-rouge">robin</code> with password <code class="language-plaintext highlighter-rouge">cave!</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">batman
+bat!
+robin
+cave!</code></pre></figure>
+
+<p>Next, we’ll use <a href="https://manpages.ubuntu.com/manpages/focal/en/man1/db_load.1.html" target="_blank">db_load</a> to generate our user database. This will take <code class="language-plaintext highlighter-rouge">users.txt</code> as input, and output <code class="language-plaintext highlighter-rouge">users.db</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>db_load <span class="nt">-T</span> <span class="nt">-t</span> <span class="nb">hash</span> <span class="nt">-f</span> /etc/vsftpd/users.txt /etc/vsftpd/users.db</code></pre></figure>
+
+<p>The arguments we’re passing here are:</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">-T</code> — allows non-Berkeley DB applications to easily load text files into databases.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">-t &lt;method&gt;</code> — specify the underlying access method (required when using <code class="language-plaintext highlighter-rouge">-T</code>). Here we’re using the <a href="https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html" target="_blank">Hash</a> access method, which is best suited for large data sets (ie: many users), where we aren’t concerned about sequential access. The hash method is also more memory efficient, as we can typically access data with a single I/O operation (compared to <a href="https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html" target="_blank">B-tree</a> for example).</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">-f &lt;file&gt;</code> — read from the specified input file.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">&lt;output&gt;</code> — the last argument is our desired output DB file.</li>
+</ul>
+
+<p>Once you’ve created your user database, update its permissions:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chmod </span>0600 /etc/vsftpd/users.db</code></pre></figure>
+
+<p>You should also delete <code class="language-plaintext highlighter-rouge">users.txt</code>, if you no longer need it:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo rm</span> /etc/vsftpd/users.txt</code></pre></figure>
+
+<h2 id="step-7-create-user-directories">Step 7: Create user directories</h2>
+
+<p>Now we need directories for our new users:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /home/vftp/<span class="o">{</span>batman,robin<span class="o">}</span>
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /home/sftp/<span class="o">{</span>batman,robin<span class="o">}</span></code></pre></figure>
+
+<h2 id="step-8-create-sftp-users">Step 8: Create SFTP users</h2>
+
+<p>Since SFTP users are local users, let’s go ahead and create them — keeping in mind that these are not the same as our virtual FTPS users.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>adduser <span class="nt">--shell</span> /bin/false batman
+<span class="nb">sudo </span>adduser <span class="nt">--shell</span> /bin/false robin</code></pre></figure>
+
+<p>Here we’re passing the <code class="language-plaintext highlighter-rouge">--shell &lt;shell&gt;</code> argument, which defines what shell is loaded for the user on login. In this case, we’re supplying <code class="language-plaintext highlighter-rouge">/bin/false</code>, which is actually no shell at all. This effectively removes the user’s shell access, ensuring they can only use their access for SFTP file transfers.</p>
+
+<h2 id="step-9-jailing-ftps-users">Step 9: Jailing FTPS users</h2>
+
+<p>In order to jail our users, which we’ll accomplish using <a href="http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html" target="_blank">chroot</a>, we need to set some very specific permissions, and make a few changes to our configuration files.</p>
+
+<p>First, make sure the owner of our FTPS parent directory, and all user subdirectories, matches our <code class="language-plaintext highlighter-rouge">guest_username</code>. The username is defined in our <code class="language-plaintext highlighter-rouge">vsftpd.conf</code> config, and in this case, it’s <code class="language-plaintext highlighter-rouge">ftp</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chown</span> <span class="nt">-R</span> ftp:ftp /home/vftp</code></pre></figure>
+
+<p>Next, remove all group permissions on our parent FTPS directory:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chmod </span>0555 /home/vftp</code></pre></figure>
+
+<h2 id="step-10-jailing-sftp-users">Step 10: Jailing SFTP users</h2>
+
+<p>In order to jail our SFTP users, we’ll need to create a group, under which all SFTP users must belong — we’ll call it <code class="language-plaintext highlighter-rouge">sftponly</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>addgroup sftponly</code></pre></figure>
+
+<p>Now let’s add our users to this group:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>usermod <span class="nt">-a</span> <span class="nt">-G</span> sftponly batman
+<span class="nb">sudo </span>usermod <span class="nt">-a</span> <span class="nt">-G</span> sftponly robin</code></pre></figure>
+
+<p>Next, we need to make some configuration changes to our SSH service. Open the <a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">sshd_config</a> file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/ssh/sshd_config</code></pre></figure>
+
+<p>find this line:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Subsystem   sftp    /usr/lib/openssh/sftp-server</code></pre></figure>
+
+<p>and replace with:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Subsystem   sftp    internal-sftp</code></pre></figure>
+
+<p>What we’re doing here, is defining the <a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">external subsystem</a> (eg: file transfer daemon), which is started automatically after SSH login from the client. The <code class="language-plaintext highlighter-rouge">internal-sftp</code> value implements an in-process SFTP server that requires no support files when defining a <code class="language-plaintext highlighter-rouge">ChrootDirectory</code>. Basically, it simplifies the process allowing us to force a different filesystem root on our users (jail them).</p>
+
+<p>Now lets create a conditional block, using Match, that will apply some options to any user belonging to the <code class="language-plaintext highlighter-rouge">sftponly</code> group:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># lock all users that are part of the</span>
+<span class="c"># `sftponly` group to our ChrootDirectory</span>
+Match Group sftponly
+        ForceCommand internal-sftp <span class="nt">-d</span> /%u
+        PasswordAuthentication <span class="nb">yes
+        </span>ChrootDirectory /home/sftp
+        PermitTunnel no
+        AllowAgentForwarding no
+        AllowTcpForwarding no
+        X11Forwarding no</code></pre></figure>
+
+<p>There’s a few important things to understand about these options.</p>
+
+<ol>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">ForceCommand</a> forces the execution of the command specified, ignoring any commands supplied by the client. By default, when an SSH user logs in, they would land in our <code class="language-plaintext highlighter-rouge">/home/sftp</code> directory, thereby allowing them to see all other users that might exist. While they won’t be able to access those directories, it’s better they don’t see them at all. To fix this, we’re going to force a directory change upon login, by passing the <code class="language-plaintext highlighter-rouge">-d &lt;path&gt;</code> argument, where <code class="language-plaintext highlighter-rouge">/%u</code> is our path relative to our ChrootDirectory, and <code class="language-plaintext highlighter-rouge">%u</code> is a token that represents the username. So on login, the user should automatically be brought to <code class="language-plaintext highlighter-rouge">/home/sftp/batman</code> without knowing it.</p>
+  </li>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">PasswordAuthentication</a> you can set this to either <code class="language-plaintext highlighter-rouge">no</code> or <code class="language-plaintext highlighter-rouge">yes</code> depending if you want to allow SFTP users to authenticate with passwords. The alternative being private/public SSH keys, which are safer, though requires more involvement to manage. I recommend allowing passwords, so long as you are creating users with cryptographically strong passwords.</p>
+  </li>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">ChrootDirectory</a> specifies the pathname of the directory to <a href="http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html" target="_blank">chroot</a> to after the user authenticates. A requirement of Chroot, is that <code class="language-plaintext highlighter-rouge">root</code> be the owner of the jailed directory.</p>
+  </li>
+</ol>
+
+<p>Lastly, lets set some required permissions — note that <code class="language-plaintext highlighter-rouge">0711</code> grants public execute, but limits read and write to the owner (root), as required by Chroot:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chown </span>root:root /home/sftp
+<span class="nb">sudo chmod </span>0711 /home/sftp</code></pre></figure>
+
+<h2 id="user-command-script">User command script</h2>
+
+<p>In order to easily manage your FTP users, we’re going to create a command script to do the work for us. This script will enable you to:</p>
+
+<ul>
+  <li>List all existing users — <code class="language-plaintext highlighter-rouge">./path/to/users list</code>
+</li>
+  <li>Add a new user — <code class="language-plaintext highlighter-rouge">./path/to/users add &lt;username&gt; &lt;password&gt;</code>
+</li>
+  <li>Edit an existing user — <code class="language-plaintext highlighter-rouge">./path/to/users edit &lt;username&gt; &lt;password&gt;</code>
+</li>
+  <li>Delete a user — <code class="language-plaintext highlighter-rouge">./path/to/users del &lt;username&gt;</code>
+</li>
+</ul>
+
+<p>This script is written in Perl, and is largely just a series of linux commands. I’ve included links to some helpful documentation:</p>
+
+<ul>
+  <li><a href="https://perldoc.perl.org/DB_File" target="_blank">Perl DB_File</a></li>
+  <li><a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html" target="_blank">PAM_userdb</a></li>
+</ul>
+
+<p>Create a new file — you can include the <code class="language-plaintext highlighter-rouge">.pl</code> extension if you prefer:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftps/users</code></pre></figure>
+
+<p>To help facilitate future updates, i’ll include the script as a gist:</p>
+
+<ul>
+  <li>🤖 <a href="https://gist.github.com/phuze/8f66a26767500398d271b42013672536" target="_blank">users.pl</a> — Perl script for managing users in a Berkeley DB within a Linux environment.</li>
+</ul>
+
+<h2 id="remote-control-over-api">Remote control over API</h2>
+
+<p>As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script. You can then build a graphical interface to manage your FTP users.</p>
+
+<p>Here’s a quick example written in PHP, which makes use of <a href="https://github.com/phpseclib/phpseclib" target="_blank">phpseclib</a>:</p>
+
+<figure class="highlight"><pre><code class="language-php" data-lang="php"><span class="kn">namespace</span> <span class="nn">MyApi\Models</span><span class="p">;</span>
+
+<span class="kn">use</span> <span class="no">phpseclib3\Net\SSH2</span><span class="p">;</span>
+<span class="kn">use</span> <span class="nc">phpseclib3\Crypt\PublicKeyLoader</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">FtpModel</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="n">__construct</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="nc">PublicKeyLoader</span><span class="o">::</span><span class="nf">load</span><span class="p">(</span><span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">'/path/to/private/key'</span><span class="p">));</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SSH2</span><span class="p">(</span><span class="s1">'my.domain.com'</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="nf">login</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nc">Exception</span><span class="p">(</span><span class="s1">'Unable to establish SSH connection.'</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="n">addUser</span><span class="p">(</span><span class="kt">string</span> <span class="nv">$username</span><span class="p">,</span> <span class="kt">string</span> <span class="nv">$password</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="nb">exec</span><span class="p">(</span><span class="s2">"sudo /etc/vsftpd/users add </span><span class="si">{</span><span class="nv">$username</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nv">$password</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>and in Python — using <a href="https://github.com/paramiko/paramiko" target="_blank">Paramiko</a>:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">paramiko</span>
+
+<span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">paramiko</span><span class="p">.</span><span class="n">SSHClient</span><span class="p">()</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">set_missing_host_key_policy</span><span class="p">(</span><span class="n">paramiko</span><span class="p">.</span><span class="n">AutoAddPolicy</span><span class="p">())</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="s">'&lt;host&gt;'</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s">'&lt;user&gt;'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">'&lt;pass&gt;'</span><span class="p">,</span> <span class="n">key_filename</span><span class="o">=</span><span class="s">'&lt;/path/to/private/key&gt;'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">conn</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">ssh</span> <span class="o">=</span> <span class="n">connect</span><span class="p">()</span>
+    <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh</span><span class="p">.</span><span class="n">exec_command</span><span class="p">(</span><span class="s">'sudo /etc/vsftpd/users add {$username} {$password}'</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">stdout</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">ssh</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span></code></pre></figure>
+
+
+
+</div>
+
+<div class="relatedPosts">
+  
+  
+    
+    
+    
+    
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+
+      
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+        
+
+        <br>
+      
+
+      
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+        
+
+        <br>
+      
+
+      
+
+    
+
+    
+  
+
+</div>
+
+<div class="disqus">
+  
+    <hr class="post-break">
+<div id="disqus_thread"></div>
+<script>
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+    /*
+    var disqus_config = function () {
+    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+    */
+    (function() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://phuze.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+</div>
+
+      </main>
+      <footer>
+    <span>
+        <span id="quote-content"></span> — <em><span id="quote-author"></span></em>
+        <script>
+            fetch('https://api.quotable.io/random?tags=technology')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("quote-content").textContent = data.content;
+                    document.getElementById("quote-author").textContent = data.author;
+                });
+        </script>
+    </span>
+</footer>
+    </div>
+
+    <script>
+      if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+      }
+      if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+      }
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+          if (document.body.className.includes("dark")) {
+              document.body.classList.remove('dark');
+              localStorage.setItem("pref-theme", 'light');
+          } else {
+              document.body.classList.add('dark');
+              localStorage.setItem("pref-theme", 'dark');
+          }
+      })
+    </script>
+
+    
+    <script>
+      // table of contents dropdown
+      const tocwrap = document.getElementById("tocwrap")
+      document.getElementById("toc-btn").addEventListener("click", (event) => {
+        event.preventDefault()
+        if (tocwrap.style.display === 'block') {
+          tocwrap.style.display = 'none'
+        } else {
+          tocwrap.style.display = 'block'
+        }
+      })
+      // close the dropdown if the user clicks outside of it
+      window.onclick = (event) => {
+        if (!event.target.id && event.target.id !== 'toc-btn') {
+          tocwrap.style.display = 'none'
+        }
+      }
+    </script>
+    
+  </body>
+</html>

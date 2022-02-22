@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="/assets/main.css">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon.png">
+
+    <!-- RSS -->
+    <link type="application/atom+xml" rel="alternate" href="https://phuze.dev/feed.xml" title="Phuze">
+
+    <!-- SEO -->
+    <!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>How to Use Unsupported Jekyll Plugins with GitHub Pages | Phuze</title>
+<meta name="generator" content="Jekyll v4.2.1">
+<meta property="og:title" content="How to Use Unsupported Jekyll Plugins with GitHub Pages">
+<meta name="author" content="Brendon LaRusic">
+<meta property="og:locale" content="en">
+<meta name="description" content="A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:">
+<meta property="og:description" content="A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:">
+<link rel="canonical" href="https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages">
+<meta property="og:url" content="https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages">
+<meta property="og:site_name" content="Phuze">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2022-02-18T00:00:00-06:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="How to Use Unsupported Jekyll Plugins with GitHub Pages">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Brendon LaRusic","url":"https://phuze.dev"},"dateModified":"2022-02-18T00:00:00-06:00","datePublished":"2022-02-18T00:00:00-06:00","description":"A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:","headline":"How to Use Unsupported Jekyll Plugins with GitHub Pages","mainEntityOfPage":{"@type":"WebPage","@id":"https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages"},"publisher":{"@type":"Organization","logo":{"@type":"ImageObject","url":"https://phuze.dev/assets/favicon.png"},"name":"Brendon LaRusic"},"url":"https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages"}</script>
+<!-- End Jekyll SEO tag -->
+
+</head>
+
+  <body>
+    <nav class="nav">
+      <div class="nav-container">
+
+        <div class="title-container">
+          <!-- blog title -->
+          <a href="/">
+            <h2 class="nav-title">Phuze</h2>
+          </a>
+
+          <!-- light/dark mode -->
+          <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+            <svg id="moon" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 640 512" fill="currentcolor"><path d="M636.3 367.6c-5.566-9.406-16.14-14.16-26.78-12.09c-43.04 8.25-87.01-3.094-120.7-31.09c-33.71-28.03-53.02-69.28-53.02-113.2c0-52.72 28.36-101.7 74.01-127.8c9.455-5.375 14.4-15.84 12.6-26.66C520.6 46 512.5 37.72 501.8 35.72C490.4 33.63 472.5 32 461.1 32c-89.84 0-170.3 54.34-205.1 138.4C252.6 178.6 256.4 187.9 264.6 191.3c8.053 3.438 17.41-.4687 20.8-8.656C315.2 110.6 384.2 64 461.1 64c4.945 0 11.66 .4062 18.29 1.031C432.5 98.34 403.9 152.9 403.9 211.3c0 53.47 23.54 103.7 64.56 137.8c36.57 30.44 83.1 44.78 129.1 40.31C562.6 426.8 513.3 448 461.1 448c-51.41 0-99.79-20.62-136.2-58.06c-6.094-6.344-16.17-6.406-22.51-.25C296 395.9 295.9 406 302.1 412.3C344.5 455.1 401 480 461.1 480c67.45 0 130.6-30.22 173.2-82.94C641.1 388.6 641.9 377 636.3 367.6zM237.1 217.6C221 183.5 186.5 160 147.3 160C105.7 160 70.03 185.3 55.23 222.5C22.89 233.9 0 264.6 0 300.8C0 346.8 37.07 384 82.85 384h152.8c45.78 0 82.85-37.25 82.85-83.25C318.4 255.4 282 218.4 237.1 217.6zM235.6 352H82.85c-28.24 0-51-22.88-51-51.25c0-27.5 21.64-49.75 48.76-51C85.46 217.1 113.3 192 147.3 192c35.58 0 64.44 27.75 67.17 62.88c6.467-3.125 13.56-5.25 21.15-5.25c28.24 0 51 22.88 51 51.13C286.6 329.1 263.8 352 235.6 352z"></path></svg>
+            <svg id="sun" xmlns="http://www.w3.org/2000/svg" viewbox="0 0 512 512" fill="currentcolor"><path d="M256 112C247.2 112 240 104.8 240 96V16C240 7.156 247.2 0 256 0s16 7.156 16 16V96C272 104.8 264.8 112 256 112zM272 496V416c0-8.844-7.156-16-16-16S240 407.2 240 416v80c0 8.844 7.156 16 16 16S272 504.8 272 496zM512 256c0-8.844-7.156-16-16-16H416c-8.844 0-16 7.156-16 16s7.156 16 16 16h80C504.8 272 512 264.8 512 256zM112 256c0-8.844-7.156-16-16-16H16C7.156 240 0 247.2 0 256s7.156 16 16 16H96C104.8 272 112 264.8 112 256zM380.5 154.2l56.56-56.59c6.25-6.25 6.25-16.38 0-22.62s-16.38-6.25-22.62 0l-56.56 56.59c-6.25 6.25-6.25 16.37 0 22.62c3.125 3.125 7.219 4.691 11.31 4.691S377.3 157.3 380.5 154.2zM97.61 437l56.56-56.59c6.25-6.25 6.25-16.37 0-22.62s-16.38-6.253-22.62-.0031l-56.56 56.59c-6.25 6.25-6.25 16.38 0 22.62c3.125 3.125 7.219 4.688 11.31 4.688S94.48 440.2 97.61 437zM437 437c6.25-6.25 6.25-16.38 0-22.62l-56.56-56.59c-6.25-6.25-16.38-6.247-22.62 .0031s-6.25 16.37 0 22.62l56.56 56.59c3.125 3.125 7.219 4.688 11.31 4.688S433.9 440.2 437 437zM154.2 154.2c6.25-6.25 6.25-16.37 0-22.62L97.61 74.97c-6.25-6.25-16.38-6.25-22.62 0s-6.25 16.38 0 22.62l56.56 56.59c3.125 3.125 7.219 4.688 11.31 4.688S151 157.3 154.2 154.2zM368 256c0-61.75-50.25-112-112-112S144 194.3 144 256s50.25 112 112 112S368 317.8 368 256zM336 256c0 44.13-35.89 80-80 80S176 300.1 176 256S211.9 176 256 176S336 211.9 336 256z"></path></svg>
+          </button>
+        </div>
+
+        <!-- table of contents (for posts) -->
+        
+        <ul class="tocbox">
+          <li class="menu-item">
+              <a href="#" id="toc-btn">Table of Contents</a>
+              <div id="tocwrap" class="tocwrap">
+                <ul id="toc" class="section-nav">
+<li class="toc-entry toc-h2"><a href="#step-1-update-your-gemfile">Step 1: Update your Gemfile</a></li>
+<li class="toc-entry toc-h2">
+<a href="#step-2-create-a-github-action-workflow">Step 2: Create a GitHub action workflow</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#understanding-the-workflow">Understanding the workflow</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#step-3-commit-the-workflow">Step 3: Commit the workflow</a></li>
+<li class="toc-entry toc-h2"><a href="#step-4-update-repository-settings">Step 4: Update repository settings</a></li>
+</ul>
+              </div>
+          </li>
+        </ul>
+        
+
+        <!-- social icons -->
+        <ul class="nav-social-icons">
+          
+          
+            <li>
+              <a target="_blank" href="https://github.com/phuze">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 480 512" fill="currentcolor"><path d="M186.1 328.7c0 20.9-10.9 55.1-36.7 55.1s-36.7-34.2-36.7-55.1 10.9-55.1 36.7-55.1 36.7 34.2 36.7 55.1zM480 278.2c0 31.9-3.2 65.7-17.5 95-37.9 76.6-142.1 74.8-216.7 74.8-75.8 0-186.2 2.7-225.6-74.8-14.6-29-20.2-63.1-20.2-95 0-41.9 13.9-81.5 41.5-113.6-5.2-15.8-7.7-32.4-7.7-48.8 0-21.5 4.9-32.3 14.6-51.8 45.3 0 74.3 9 108.8 36 29-6.9 58.8-10 88.7-10 27 0 54.2 2.9 80.4 9.2 34-26.7 63-35.2 107.8-35.2 9.8 19.5 14.6 30.3 14.6 51.8 0 16.4-2.6 32.7-7.7 48.2 27.5 32.4 39 72.3 39 114.2zm-64.3 50.5c0-43.9-26.7-82.6-73.5-82.6-18.9 0-37 3.4-56 6-14.9 2.3-29.8 3.2-45.1 3.2-15.2 0-30.1-.9-45.1-3.2-18.7-2.6-37-6-56-6-46.8 0-73.5 38.7-73.5 82.6 0 87.8 80.4 101.3 150.4 101.3h48.2c70.3 0 150.6-13.4 150.6-101.3zm-82.6-55.1c-25.8 0-36.7 34.2-36.7 55.1s10.9 55.1 36.7 55.1 36.7-34.2 36.7-55.1-10.9-55.1-36.7-55.1z"></path></svg>
+              </a>
+            </li>
+          
+          
+          
+            <li>
+              <a target="_blank" href="https://www.linkedin.com/in/brendon-larusic/">
+                <svg xmlns="http://www.w3.org/2000/svg" viewbox="0 0 448 512" fill="currentcolor"><path d="M100.28 448H7.4V148.9h92.88zM53.79 108.1C24.09 108.1 0 83.5 0 53.8a53.79 53.79 0 0 1 107.58 0c0 29.7-24.1 54.3-53.79 54.3zM447.9 448h-92.68V302.4c0-34.7-.7-79.2-48.29-79.2-48.29 0-55.69 37.7-55.69 76.7V448h-92.78V148.9h89.08v40.8h1.3c12.4-23.5 42.69-48.3 87.88-48.3 94 0 111.28 61.9 111.28 142.3V448z"></path></svg>
+              </a>
+            </li>
+          
+          
+        </ul>
+      </div>
+    </nav>
+
+    <div class="flex-wrapper">
+      <main>
+        <div class="post">
+
+  <div class="post-info">
+    
+      <time datetime="2022-02-18 00:00:00 -0600">February 18, 2022</time>
+    
+  </div>
+  <div class="post-tags">
+    
+      
+        <span class="post-tag">Jekyll</span>
+      
+        <span class="post-tag">Jekyll 4.2.1</span>
+      
+        <span class="post-tag">GitHub Pages</span>
+      
+    
+  </div>
+  <h1 class="post-title">
+    <div>How to Use Unsupported Jekyll Plugins with GitHub Pages</div>
+  </h1>
+  
+  <hr class="post-break">
+
+  <p>A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">github-pages 223 | Error:  Liquid syntax error on line 28: Unknown tag</code></pre></figure>
+
+<p>The reason — all GitHub Page sites are generated using the <code class="language-plaintext highlighter-rouge">--safe</code> option to disable plugins (with the exception of some <a href="https://pages.github.com/versions/" target="_blank">whitelisted plugins</a>). Unfortunately, this means many plugins won’t work if you’re deploying via GitHub Pages.</p>
+
+<p>The way to make use of unsupported plugins, is to build your website locally, instead of relying on GitHub’s automated build and deploy process for Jekyll.</p>
+
+<h2 id="step-1-update-your-gemfile">Step 1: Update your Gemfile</h2>
+
+<p>Update your <code class="language-plaintext highlighter-rouge">Gemfile</code> and use the core <code class="language-plaintext highlighter-rouge">jekyll</code> gem, rather than the <code class="language-plaintext highlighter-rouge">github-pages</code> gem.</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">gem</span> <span class="s1">'jekyll'</span></code></pre></figure>
+
+<h2 id="step-2-create-a-github-action-workflow">Step 2: Create a GitHub action workflow</h2>
+
+<p>In your project, create a new workflow file <code class="language-plaintext highlighter-rouge">~/.github/workflows/deploy.yml</code>. This workflow will create a new <code class="language-plaintext highlighter-rouge">gh-pages</code> branch for deployment. Find and change this if you prefer a different branch name:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">name</span><span class="pi">:</span> <span class="s">build and deploy</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span> <span class="nv">main</span> <span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">build</span><span class="pi">:</span>
+
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v2</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🔨 Build the site in the jekyll/builder docker container</span>
+      <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+        <span class="s">docker run \</span>
+          <span class="s">-v ${{ github.workspace }}:/srv/jekyll \</span>
+          <span class="s">-v ${{ github.workspace }}/_site:/srv/jekyll/_site \</span>
+          <span class="s">jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll &amp;&amp; chmod -R 777 /usr/gem &amp;&amp; jekyll build"</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🧪 Push the site to the gh-pages branch</span>
+      <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+        <span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+        <span class="s">cd ${{ github.workspace }}/_site</span>
+        <span class="s">git init -b gh-pages</span>
+        <span class="s">git config user.name ${{ github.actor }}</span>
+        <span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+        <span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span>
+        <span class="s">git add .</span>
+        <span class="s">git commit -m "🧪 Deployed with commit ${{ github.sha }}"</span>
+        <span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<h3 id="understanding-the-workflow">Understanding the workflow</h3>
+
+<p>Let’s take a closer look at what’s happening in this workflow:</p>
+
+<ul>
+  <li>
+<code class="language-plaintext highlighter-rouge">name</code> — The name of our workflow.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">on</code> — Defines when the workflow will be triggered. In this example, on push to the <code class="language-plaintext highlighter-rouge">main</code> branch</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">jobs</code> — A set of steps to be executed when our workflow is triggered. You can learn more about jobs from the <a href="https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions#jobs" target="_blank">GitHub Docs</a>.</li>
+  <li>
+<code class="language-plaintext highlighter-rouge">steps</code> — These are the individual steps which make up our job.</li>
+</ul>
+
+<p>Our job begins with a reusable action, <a href="https://github.com/marketplace/actions/checkout" target="_blank">actions/checkout@v2</a>, which clones our project to the workflow’s virtual environment:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v2</span></code></pre></figure>
+
+<p>Following that, we’re going to use the <a href="https://hub.docker.com/r/jekyll/builder" target="_blank">jekyll/builder</a> docker image to build our project files:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🔨 Build the site in the jekyll/builder docker container</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">docker run \</span>
+    <span class="s">-v ${{ github.workspace }}:/srv/jekyll \</span>
+    <span class="s">-v ${{ github.workspace }}/_site:/srv/jekyll/_site \</span>
+    <span class="s">jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll &amp;&amp; chmod -R 777 /usr/gem &amp;&amp; jekyll build"</span></code></pre></figure>
+
+<p>It is necessary to grant public read/write permissions to both the <code class="language-plaintext highlighter-rouge">/srv/jekyll</code> and <code class="language-plaintext highlighter-rouge">/usr/gem</code> directories, otherwise you’ll encounter build errors:</p>
+
+<blockquote>
+  <p>There was an error while trying to write to <code class="language-plaintext highlighter-rouge">/srv/jekyll/Gemfile.lock</code>. It is
+likely that you need to grant write permissions for that path.
+Error: Process completed with exit code 23.</p>
+</blockquote>
+
+<p>The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by pushing our build changes to our deployment branch.</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🧪 Push the site to the gh-pages branch</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+    <span class="s">cd ${{ github.workspace }}/_site</span>
+    <span class="s">git init -b gh-pages</span>
+    <span class="s">git config user.name ${{ github.actor }}</span>
+    <span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+    <span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span>
+    <span class="s">git add .</span>
+    <span class="s">git commit -m "🧪 Deployed with commit ${{ github.sha }}"</span>
+    <span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<p>First we make sure our workspace environment has ownership over our build directory (<code class="language-plaintext highlighter-rouge">/_site</code>), then enter it:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+<span class="s">cd ${{ github.workspace }}/_site</span></code></pre></figure>
+
+<p>Next we initialize a new repository, along with a new <code class="language-plaintext highlighter-rouge">gh-pages</code> branch we’ll use as our deployment branch:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">git init -b gh-pages</span>
+<span class="s">git config user.name ${{ github.actor }}</span>
+<span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+<span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span></code></pre></figure>
+
+<p>Lastly, we commit our built website files to our <code class="language-plaintext highlighter-rouge">gh-pages</code> branch:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">git add .</span>
+<span class="s">git commit -m "Deploy site built from commit ${{ github.sha }}"</span>
+<span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<h2 id="step-3-commit-the-workflow">Step 3: Commit the workflow</h2>
+
+<p>Commit and push your workflow file to the <code class="language-plaintext highlighter-rouge">main</code> branch of your repository. This also serves to trigger our workflow action.</p>
+
+<h2 id="step-4-update-repository-settings">Step 4: Update repository settings</h2>
+
+<p>Visit your repository on GitHub, navigate to <code class="language-plaintext highlighter-rouge">Settings &gt; Pages</code>, then update your <code class="language-plaintext highlighter-rouge">Source</code> to your new deployment branch — <code class="language-plaintext highlighter-rouge">gh-pages</code>:</p>
+
+<p><img src="assets/pages-deploy-branch.png" alt="Image with caption">
+<em>Found at https://github.com/{username}/{repository}/settings/pages</em></p>
+
+<p>After a short wait, your website will be available again, along with any features driven by those unsupported plugins.</p>
+
+
+</div>
+
+<div class="relatedPosts">
+  
+  
+    
+    
+    
+    
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+        
+
+        <br>
+      
+
+      
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+
+      
+
+    
+
+      
+      
+
+      <!--
+        page = current post page
+        post = all site posts
+      -->
+      
+        
+
+        <br>
+      
+
+      
+
+    
+
+    
+  
+
+</div>
+
+<div class="disqus">
+  
+    <hr class="post-break">
+<div id="disqus_thread"></div>
+<script>
+    /**
+    *  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+    *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables    */
+    /*
+    var disqus_config = function () {
+    this.page.url = PAGE_URL;  // Replace PAGE_URL with your page's canonical URL variable
+    this.page.identifier = PAGE_IDENTIFIER; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+    };
+    */
+    (function() {
+    var d = document, s = d.createElement('script');
+    s.src = 'https://phuze.disqus.com/embed.js';
+    s.setAttribute('data-timestamp', +new Date());
+    (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+</noscript>
+  
+</div>
+
+      </main>
+      <footer>
+    <span>
+        <span id="quote-content"></span> — <em><span id="quote-author"></span></em>
+        <script>
+            fetch('https://api.quotable.io/random?tags=technology')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("quote-content").textContent = data.content;
+                    document.getElementById("quote-author").textContent = data.author;
+                });
+        </script>
+    </span>
+</footer>
+    </div>
+
+    <script>
+      if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+      }
+      if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+      }
+      document.getElementById("theme-toggle").addEventListener("click", () => {
+          if (document.body.className.includes("dark")) {
+              document.body.classList.remove('dark');
+              localStorage.setItem("pref-theme", 'light');
+          } else {
+              document.body.classList.add('dark');
+              localStorage.setItem("pref-theme", 'dark');
+          }
+      })
+    </script>
+
+    
+    <script>
+      // table of contents dropdown
+      const tocwrap = document.getElementById("tocwrap")
+      document.getElementById("toc-btn").addEventListener("click", (event) => {
+        event.preventDefault()
+        if (tocwrap.style.display === 'block') {
+          tocwrap.style.display = 'none'
+        } else {
+          tocwrap.style.display = 'block'
+        }
+      })
+      // close the dropdown if the user clicks outside of it
+      window.onclick = (event) => {
+        if (!event.target.id && event.target.id !== 'toc-btn') {
+          tocwrap.style.display = 'none'
+        }
+      }
+    </script>
+    
+  </body>
+</html>

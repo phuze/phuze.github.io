@@ -1,0 +1,2 @@
+User-agent: *
+Sitemap: https://phuze.dev/sitemap.xml

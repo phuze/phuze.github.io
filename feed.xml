@@ -1,0 +1,720 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en"><generator uri="https://jekyllrb.com/" version="4.2.1">Jekyll</generator><link href="https://phuze.dev/feed.xml" rel="self" type="application/atom+xml" /><link href="https://phuze.dev/" rel="alternate" type="text/html" hreflang="en" /><updated>2022-02-22T13:31:27-06:00</updated><id>https://phuze.dev/feed.xml</id><title type="html">Phuze</title><subtitle>Document all the things.</subtitle><author><name>Brendon LaRusic</name><email>brendon@larusic.ca</email></author><entry><title type="html">Building a Secure FTP Server</title><link href="https://phuze.dev/building-a-secure-ftp-server" rel="alternate" type="text/html" title="Building a Secure FTP Server" /><published>2022-02-19T00:00:00-06:00</published><updated>2022-02-19T00:00:00-06:00</updated><id>https://phuze.dev/building-a-secure-ftp-server</id><content type="html" xml:base="https://phuze.dev/building-a-secure-ftp-server"><![CDATA[<!--NOTICE--{::nomarkdown}<div class="post-notice"><div class="post-notice-content">
+Foreword: Expect all links to open in a new page. Comments are open to questions and suggestions. This article is in progress.
+</div></div>{:/nomarkdown}-->
+
+<p>Building a secure FTP server should begin with a clear understanding of the mechanisms involved. When we talk about an FTP server, this commonly involves three protocols:</p>
+
+<ol>
+  <li><a href="https://en.wikipedia.org/wiki/File_Transfer_Protocol" target="_blank"><strong>FTP</strong></a> — File Transfer Protocol. This is your basic protocol for transferring files.</li>
+  <li><a href="https://en.wikipedia.org/wiki/FTPS" target="_blank"><strong>FTPS</strong></a> — FTP over SSL, or FTP Secure. This is an extension to the basic FTP protocol, which adds support for <a href="https://en.wikipedia.org/wiki/Transport_Layer_Security" target="_blank">TLS</a> (Transport Layer Security).</li>
+  <li><a href="https://en.wikipedia.org/wiki/SSH_File_Transfer_Protocol" target="_blank"><strong>SFTP</strong></a> — While the acronym is similar, this is SSH File Transfer Protocol, and it operates unrelated to both FTP and FTPS.</li>
+</ol>
+
+<p>Deciding which protocols work best for you, depends largely on your project. There should almost never be a need to support basic FTP. The exception might be if you needed a simple file transfer solution between servers that exist within a private local network. Otherwise, using FTP is akin to serving an application over HTTP instead of HTTPS.</p>
+
+<p>Let’s explore some of the key differences between each protocol.</p>
+
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th> </th>
+        <th>:FTP:</th>
+        <th>:FTPS:</th>
+        <th>:SFTP:</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Command Port</td>
+        <td>21</td>
+        <td>990</td>
+        <td>22</td>
+      </tr>
+      <tr>
+        <td>Data Port</td>
+        <td>20</td>
+        <td>989 (active mode) — passive mode is user defined, but by default any port 0—65535</td>
+        <td>22</td>
+      </tr>
+      <tr>
+        <td>Security</td>
+        <td>: Basic FTP doesn’t encrypt any communication between the client and the server :</td>
+        <td>: Command and data channels are encrypted only if the client issues the necessary [AUTH](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} and [PROT](https://datatracker.ietf.org/doc/html/rfc2228#section-3){:target="_blank"} commands :</td>
+        <td>: Relies on SSH for data encryption over the wire - commands and data are always encrypted :</td>
+      </tr>
+      <tr>
+        <td>Connections</td>
+        <td>: At least 2: one port to issue commands and a separate port for data : |</td>
+        <td>: Only 1 is required (commands and data use the same connection) :</td>
+        <td> </td>
+      </tr>
+      <tr>
+        <td>Pros</td>
+        <td>: Anonymous FTP access in browser, and slightly faster due to having no encryption overhead :</td>
+        <td>: Widely known and supported, with better support for server-to-server file transfers :</td>
+        <td>: Commands and data are always encrypted, and is backed by solid standards :</td>
+      </tr>
+      <tr>
+        <td>Cons</td>
+        <td>: Connection details and data is transmitted in clear text :</td>
+        <td>: Requires a secondary DATA channel, which makes it harder to use behind firewalls and NATs :</td>
+        <td>: Limited server-to-server options, dependent on environment and application :</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+
+<div class="post-notice"><div class="post-notice-icon"><svg aria-hidden="true" focusable="false" data-prefix="fad" data-icon="info-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-fw fa-2x svg-inline--fa fa-info-circle fa-w-16"><g class="fa-group"><path fill="#98b3c6" d="M256 8C119 8 8 119.08 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 110a42 42 0 1 1-42 42 42 42 0 0 1 42-42zm56 254a12 12 0 0 1-12 12h-88a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h12v-64h-12a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h64a12 12 0 0 1 12 12v100h12a12 12 0 0 1 12 12z" class="fa-secondary"></path><path fill="#305977" d="M256 202a42 42 0 1 0-42-42 42 42 0 0 0 42 42zm44 134h-12V236a12 12 0 0 0-12-12h-64a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h12v64h-12a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h88a12 12 0 0 0 12-12v-24a12 12 0 0 0-12-12z" class="fa-primary"></path></g></svg></div><div class="post-notice-content">Tip: To use FTPS in <a href="https://filezilla-project.org/" target="_blank">FileZilla</a>, set the Encryption option to: <em>Require explicit FTP over TLS</em>.</div></div>
+
+<h3 id="implicit--vs--explicit-in-filezilla">Implicit -vs- Explicit in FileZilla</h3>
+
+<p>It’s worth noting that explicit FTPS uses port 21, where implicit FTPS uses port 990. With <em>explicit</em> mode, clients initially connect to the standard FTP port (21), and then upgrades the connection into secure FTPS mode (990), by issuing an <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">AUTH</a> command. By comparison, with <em>implicit mode</em>, its assumed the connection is always encrypted from the beginning.</p>
+
+<p>As described in this <a href="https://wiki.filezilla-project.org/FTP_over_TLS#Explicit_vs_Implicit_FTPS" target="_blank">FileZilla Wiki</a>, Explicit mode is considered more modern. When also considering that most clients and software libraries assume port 21 as the default, Explicit is recommended over Implicit.</p>
+
+<p>You can switch to implicit mode by listening on port 990 instead of 21, and enabling the <a href="http://vsftpd.beasts.org/vsftpd_conf.html">implicit_ssl</a> option in <code class="language-plaintext highlighter-rouge">vsftpd.conf</code>:</p>
+
+<figure class="highlight"><pre><code class="language-conf" data-lang="conf"><span class="n">listen_port</span>=<span class="m">990</span>
+<span class="n">implicit_ssl</span>=<span class="n">YES</span></code></pre></figure>
+
+<h2 id="getting-started">Getting Started</h2>
+
+<p>I’m going to show you how to build a secure FTP server with the following features:</p>
+
+<ul>
+  <li>Support for both FTPS and SFTP to maximize integration options for third-parties.</li>
+  <li>Virtual FTPS users with custom authentication using a Berkeley DB database.</li>
+  <li>Jailed user environments, so that users cannot access any files or directories outside of their own dedicated folders.</li>
+  <li>Shell-less SFTP users, so that users can only perform file transfer operations.</li>
+  <li>A command script for easy user management.</li>
+</ul>
+
+<p>You’re going to need the following tools and software:</p>
+
+<ul>
+  <li>A linux-based virtual machine — I’ve used Ubuntu 20.04.</li>
+  <li><a href="https://help.ubuntu.com/community/vsftpd" target="_blank"><strong>vsftpd</strong></a> (Very Secure FTP Daemon) — this is our FTP server software.</li>
+  <li><a href="https://packages.ubuntu.com/focal/db-util" target="_blank"><strong>db-util</strong></a> — <a href="https://www.oracle.com/database/technologies/related/berkeleydb.html" target="_blank">Berkeley DB</a> database utilities (this will be for our user database)</li>
+  <li>SSL certificate (if you plan on creating your own DNS record) — otherwise, we can generate a self-signed certificate.</li>
+</ul>
+
+<h2 id="step-1-install-vsftpd-and-db-util">Step 1: Install <code class="language-plaintext highlighter-rouge">vsftpd</code> and <code class="language-plaintext highlighter-rouge">db-util</code></h2>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>apt update
+<span class="nb">sudo </span>apt <span class="nb">install </span>vsftpd db-util</code></pre></figure>
+
+<h2 id="step-2-configure-vsftpd">Step 2: Configure <code class="language-plaintext highlighter-rouge">vsftpd</code></h2>
+
+<p>Open the configuration file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftpd.conf</code></pre></figure>
+
+<p>and replace the entire contents with the configuration below. I’ve added comments describing what each of the options are for. If you’re looking for additional information, I recommend the <a href="https://web.mit.edu/rhel-doc/5/RHEL-5-manual/Deployment_Guide-en-US/s1-ftp-vsftpd-conf.html" target="_blank">Red Hat Documentation</a> on vsftpd, as well as Ubuntu’s <a href="https://help.ubuntu.com/community/vsftpd" target="_blank">community help wiki</a>.</p>
+
+<p>Be sure to look at the <code class="language-plaintext highlighter-rouge">pasv_address</code>, <code class="language-plaintext highlighter-rouge">rsa_cert_file</code> and <code class="language-plaintext highlighter-rouge">rsa_private_key_file</code> options at the bottom. You will need to update these values related to your own server.</p>
+
+<figure class="highlight"><pre><code class="language-conf" data-lang="conf"><span class="c"># run vsftpd in stand-alone mode
+</span><span class="n">listen</span>=<span class="n">YES</span>
+<span class="n">listen_port</span>=<span class="m">21</span>
+
+<span class="c"># disable IPv6 (cannot be used with stand-alone mode)
+</span><span class="n">listen_ipv6</span>=<span class="n">NO</span>
+
+<span class="c"># enable connection level logging (helps with troubleshooting)
+# default log location: /var/log/vsftpd.log
+</span><span class="n">xferlog_enable</span>=<span class="n">YES</span>
+<span class="n">xferlog_std_format</span>=<span class="n">NO</span>
+<span class="n">log_ftp_protocol</span>=<span class="n">YES</span>
+
+<span class="c"># disable anonymous access
+</span><span class="n">anonymous_enable</span>=<span class="n">NO</span>
+
+<span class="c"># enable local accounts
+</span><span class="n">local_enable</span>=<span class="n">YES</span>
+
+<span class="c"># enable virtual users
+</span><span class="n">guest_enable</span>=<span class="n">YES</span>
+<span class="n">guest_username</span>=<span class="n">ftp</span>
+
+<span class="c"># default umask for local users
+# 022 allows only our local user to write, but anyone can read
+# 077 is completely private, no other user can read or write
+</span><span class="n">local_umask</span>=<span class="m">077</span>
+
+<span class="c"># virtual users will have the same privileges
+# as our local guest account
+</span><span class="n">virtual_use_local_privs</span>=<span class="n">YES</span>
+
+<span class="c"># write permissions for users
+</span><span class="n">write_enable</span>=<span class="n">YES</span>
+<span class="n">allow_writeable_chroot</span>=<span class="n">YES</span>
+
+<span class="c"># virtual user directory
+</span><span class="n">local_root</span>=/<span class="n">home</span>/<span class="n">vftp</span>/$<span class="n">USER</span>
+
+<span class="c"># automatically generate a home directory for each virtual user
+</span><span class="n">user_sub_token</span>=$<span class="n">USER</span>
+
+<span class="c"># jail all users by default
+</span><span class="n">chroot_local_user</span>=<span class="n">YES</span>
+<span class="n">chroot_list_enable</span>=<span class="n">NO</span>
+<span class="n">secure_chroot_dir</span>=/<span class="n">var</span>/<span class="n">run</span>/<span class="n">vsftpd</span>/<span class="n">empty</span>
+
+<span class="c"># hide info about file owner (user and group)
+</span><span class="n">hide_ids</span>=<span class="n">YES</span>
+
+<span class="c"># miscellaneous options
+</span><span class="n">dirmessage_enable</span>=<span class="n">YES</span>
+<span class="n">use_localtime</span>=<span class="n">YES</span>
+
+<span class="c"># allow active mode connections
+</span><span class="n">port_enable</span>=<span class="n">YES</span>
+<span class="n">connect_from_port_20</span>=<span class="n">YES</span>
+<span class="n">ftp_data_port</span>=<span class="m">20</span>
+
+<span class="c"># use the virtual PAM service
+</span><span class="n">pam_service_name</span>=<span class="n">vsftpd</span>.<span class="n">virtual</span>
+
+<span class="c"># set max connections and idle timeout
+# to help against DoS attacks
+</span><span class="n">max_per_ip</span>=<span class="m">3</span>
+<span class="n">idle_session_timeout</span>=<span class="m">300</span>
+
+<span class="c"># passive mode configuration
+# enter your own servers public IP address
+</span><span class="n">pasv_address</span>=<span class="m">0</span>.<span class="m">0</span>.<span class="m">0</span>.<span class="m">0</span>
+<span class="n">pasv_min_port</span>=<span class="m">50000</span>
+<span class="n">pasv_max_port</span>=<span class="m">50999</span>
+<span class="n">pasv_promiscuous</span>=<span class="n">YES</span>
+<span class="n">pasv_enable</span>=<span class="n">YES</span>
+
+<span class="c"># SSL
+</span><span class="n">ssl_enable</span>=<span class="n">YES</span>
+<span class="n">allow_anon_ssl</span>=<span class="n">NO</span>
+<span class="n">force_local_data_ssl</span>=<span class="n">YES</span>
+<span class="n">force_local_logins_ssl</span>=<span class="n">YES</span>
+<span class="n">ssl_tlsv1</span>=<span class="n">YES</span>
+<span class="n">ssl_sslv2</span>=<span class="n">NO</span>
+<span class="n">ssl_sslv3</span>=<span class="n">NO</span>
+<span class="n">rsa_cert_file</span>=/<span class="n">path</span>/<span class="n">to</span>/<span class="n">bundle</span>.<span class="n">crt</span>
+<span class="n">rsa_private_key_file</span>=/<span class="n">path</span>/<span class="n">to</span>/<span class="n">cert</span>.<span class="n">key</span></code></pre></figure>
+
+<h2 id="step-3-configuring-firewalls">Step 3: Configuring firewalls</h2>
+
+<p>In passive mode, the client initiates a <a href="https://datatracker.ietf.org/doc/html/rfc2228#section-3" target="_blank">PASV</a> command to the server, which requests an available port for data transmission. By default, vsftpd does not limit the port range, meaning a client could be returned a port anywhere between 0—65535.</p>
+
+<p>Instead, we’ve defined a data port range between 50000—50999 in our <code class="language-plaintext highlighter-rouge">vsftpd.conf</code>, which gives us 999 available data ports for clients. If you anticipate having significant numbers of concurrent users, consider increasing this range.</p>
+
+<p>Now that we’ve defined an explicit range, we need to allow this range of ports in our firewall. If you’re using <a href="https://portal.azure.com/" target="_blank">Microsoft Azure</a>, apply these rules to a Network Security Group that covers your FTP server. If you’re using Ubuntu’s <a href="https://help.ubuntu.com/community/UFW" target="_blank">Uncomplicated Firewall (UFW)</a>, first make sure its enabled:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw status</code></pre></figure>
+
+<p>enable it if you need to:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw <span class="nb">enable</span></code></pre></figure>
+
+<p>then allow the TCP port range we defined in our <code class="language-plaintext highlighter-rouge">vsftp.conf</code> config:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw allow 50000:50999/tcp</code></pre></figure>
+
+<p>In addition, we must also allow default ports common to the FTPS and SFTP protocols. Again, if you’re using Azure, apply these rules to a Network Security Group. Otherwise, update your Ubuntu firewall:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>ufw allow 20,21,22,989,990/tcp</code></pre></figure>
+
+<p>Here is a recap of the ports we’re allowing:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">20</code> — FTP data channel</li>
+  <li><code class="language-plaintext highlighter-rouge">21</code> — FTP command channel</li>
+  <li><code class="language-plaintext highlighter-rouge">22</code> — SSH</li>
+  <li><code class="language-plaintext highlighter-rouge">989</code> — FTPS data channel (active mode)</li>
+  <li><code class="language-plaintext highlighter-rouge">990</code> — FTPS command channel</li>
+  <li><code class="language-plaintext highlighter-rouge">50000—50999</code> — FTPS data channels (passive mode)</li>
+</ul>
+
+<h2 id="step-4-create-a-new-pam-service">Step 4: Create a new PAM service</h2>
+
+<p>PAM (short for Pluggable Authentication Modules), is a powerful suite of libraries that allow us to dynamically authenticate users in a Linux-based system. We’re going to use the <a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html" target="_blank">pam_userdb</a> module which will allow us to authenticate against a DB database.</p>
+
+<p>Create a new PAM file that will use our new database (you’ll create the database in step 6):</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/pam.d/vsftpd.virtual</code></pre></figure>
+
+<p>and save the following:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#%PAM-1.0</span>
+auth       required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users
+account    required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users
+session    required     pam_loginuid.so</code></pre></figure>
+
+<p>Note that the path to the database file should be specified without the <code class="language-plaintext highlighter-rouge">.db</code> suffix.</p>
+
+<p>As an extra, <code class="language-plaintext highlighter-rouge">pam_userdb</code> allows us to define whether passwords stored in our user database, are encrypted, by passing an additional <a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html#OPTIONS" target="_blank">crypt</a> option.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c">#%PAM-1.0</span>
+auth       required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users <span class="nv">crypt</span><span class="o">=</span>crypt
+account    required     pam_userdb.so <span class="nv">db</span><span class="o">=</span>/etc/vsftpd/users <span class="nv">crypt</span><span class="o">=</span>crypt
+session    required     pam_loginuid.so</code></pre></figure>
+
+<p>It’s important to know, if you choose this option, passwords must be stored in <a href="http://www.linux-pam.org/Linux-PAM-html/sag-pam_userdb.html">crypt(3)</a> form. The <code class="language-plaintext highlighter-rouge">crypt()</code> function relies on the legacy DES (Data Encryption Standard) algorithm, which only supports a maximum password length of 8 characters. This is not often expressly pointed out, but is described in the related <a href="Source: https://man7.org/linux/man-pages/man3/crypt.3.html">manual</a>:</p>
+
+<blockquote>
+  <p>By taking the lowest 7 bits of each of the first eight characters of the key, a 56-bit key is obtained.  This 56-bit key is used to encrypt repeatedly a constant string (usually a string consisting of all zeros).</p>
+</blockquote>
+
+<h2 id="step-5-create-service-directories">Step 5: Create service directories</h2>
+
+<p>We’re going to need some directories where user content will live. It is important that user directories are created inside a parent directory, which will act as our jail. We’ll also need a place to keep our virtual user database.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># directory for our virtual FTPS users</span>
+<span class="nb">sudo mkdir</span> /home/vftp
+
+<span class="c"># directory for our local SFTP users</span>
+<span class="nb">sudo mkdir</span> /home/sftp
+
+<span class="c"># directory to store our user database</span>
+<span class="nb">sudo mkdir</span> /etc/vsftpd</code></pre></figure>
+
+<h2 id="step-6-create-ftps-user-database">Step 6: Create FTPS user database</h2>
+
+<p>Rather than creating local users for FTPS, we’re going to create virtual users — a feature of vsftpd. Enabling virtual FTPS users will help enhance the security of our FTP server.</p>
+
+<p>First create a plain text file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftpd/users.txt</code></pre></figure>
+
+<p>then enter your usernames and passwords on alternating lines, as described in the <a href="https://manpages.ubuntu.com/manpages/focal/en/man1/db_load.1.html" target="_blank">db_load</a> documentation:</p>
+
+<blockquote>
+  <p>If the database to be created is of type Btree or Hash, or the keyword keys is specified as set, the input must be paired lines of text, where the first line of the pair is the key item, and the second line of the pair is its corresponding data item.</p>
+</blockquote>
+
+<p>For example, we’re going to create the users <code class="language-plaintext highlighter-rouge">batman</code> with password <code class="language-plaintext highlighter-rouge">bat!</code>, and <code class="language-plaintext highlighter-rouge">robin</code> with password <code class="language-plaintext highlighter-rouge">cave!</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">batman
+bat!
+robin
+cave!</code></pre></figure>
+
+<p>Next, we’ll use <a href="https://manpages.ubuntu.com/manpages/focal/en/man1/db_load.1.html" target="_blank">db_load</a> to generate our user database. This will take <code class="language-plaintext highlighter-rouge">users.txt</code> as input, and output <code class="language-plaintext highlighter-rouge">users.db</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>db_load <span class="nt">-T</span> <span class="nt">-t</span> <span class="nb">hash</span> <span class="nt">-f</span> /etc/vsftpd/users.txt /etc/vsftpd/users.db</code></pre></figure>
+
+<p>The arguments we’re passing here are:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">-T</code> — allows non-Berkeley DB applications to easily load text files into databases.</li>
+  <li><code class="language-plaintext highlighter-rouge">-t &lt;method&gt;</code> — specify the underlying access method (required when using <code class="language-plaintext highlighter-rouge">-T</code>). Here we’re using the <a href="https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html" target="_blank">Hash</a> access method, which is best suited for large data sets (ie: many users), where we aren’t concerned about sequential access. The hash method is also more memory efficient, as we can typically access data with a single I/O operation (compared to <a href="https://docs.oracle.com/database/bdb181/html/gsg/CXX/accessmethods.html" target="_blank">B-tree</a> for example).</li>
+  <li><code class="language-plaintext highlighter-rouge">-f &lt;file&gt;</code> — read from the specified input file.</li>
+  <li><code class="language-plaintext highlighter-rouge">&lt;output&gt;</code> — the last argument is our desired output DB file.</li>
+</ul>
+
+<p>Once you’ve created your user database, update its permissions:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chmod </span>0600 /etc/vsftpd/users.db</code></pre></figure>
+
+<p>You should also delete <code class="language-plaintext highlighter-rouge">users.txt</code>, if you no longer need it:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo rm</span> /etc/vsftpd/users.txt</code></pre></figure>
+
+<h2 id="step-7-create-user-directories">Step 7: Create user directories</h2>
+
+<p>Now we need directories for our new users:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo mkdir</span> <span class="nt">-p</span> /home/vftp/<span class="o">{</span>batman,robin<span class="o">}</span>
+<span class="nb">sudo mkdir</span> <span class="nt">-p</span> /home/sftp/<span class="o">{</span>batman,robin<span class="o">}</span></code></pre></figure>
+
+<h2 id="step-8-create-sftp-users">Step 8: Create SFTP users</h2>
+
+<p>Since SFTP users are local users, let’s go ahead and create them — keeping in mind that these are not the same as our virtual FTPS users.</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>adduser <span class="nt">--shell</span> /bin/false batman
+<span class="nb">sudo </span>adduser <span class="nt">--shell</span> /bin/false robin</code></pre></figure>
+
+<p>Here we’re passing the <code class="language-plaintext highlighter-rouge">--shell &lt;shell&gt;</code> argument, which defines what shell is loaded for the user on login. In this case, we’re supplying <code class="language-plaintext highlighter-rouge">/bin/false</code>, which is actually no shell at all. This effectively removes the user’s shell access, ensuring they can only use their access for SFTP file transfers.</p>
+
+<h2 id="step-9-jailing-ftps-users">Step 9: Jailing FTPS users</h2>
+
+<p>In order to jail our users, which we’ll accomplish using <a href="http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html" target="_blank">chroot</a>, we need to set some very specific permissions, and make a few changes to our configuration files.</p>
+
+<p>First, make sure the owner of our FTPS parent directory, and all user subdirectories, matches our <code class="language-plaintext highlighter-rouge">guest_username</code>. The username is defined in our <code class="language-plaintext highlighter-rouge">vsftpd.conf</code> config, and in this case, it’s <code class="language-plaintext highlighter-rouge">ftp</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chown</span> <span class="nt">-R</span> ftp:ftp /home/vftp</code></pre></figure>
+
+<p>Next, remove all group permissions on our parent FTPS directory:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chmod </span>0555 /home/vftp</code></pre></figure>
+
+<h2 id="step-10-jailing-sftp-users">Step 10: Jailing SFTP users</h2>
+
+<p>In order to jail our SFTP users, we’ll need to create a group, under which all SFTP users must belong — we’ll call it <code class="language-plaintext highlighter-rouge">sftponly</code>:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>addgroup sftponly</code></pre></figure>
+
+<p>Now let’s add our users to this group:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>usermod <span class="nt">-a</span> <span class="nt">-G</span> sftponly batman
+<span class="nb">sudo </span>usermod <span class="nt">-a</span> <span class="nt">-G</span> sftponly robin</code></pre></figure>
+
+<p>Next, we need to make some configuration changes to our SSH service. Open the <a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">sshd_config</a> file:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/ssh/sshd_config</code></pre></figure>
+
+<p>find this line:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Subsystem   sftp    /usr/lib/openssh/sftp-server</code></pre></figure>
+
+<p>and replace with:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">Subsystem   sftp    internal-sftp</code></pre></figure>
+
+<p>What we’re doing here, is defining the <a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">external subsystem</a> (eg: file transfer daemon), which is started automatically after SSH login from the client. The <code class="language-plaintext highlighter-rouge">internal-sftp</code> value implements an in-process SFTP server that requires no support files when defining a <code class="language-plaintext highlighter-rouge">ChrootDirectory</code>. Basically, it simplifies the process allowing us to force a different filesystem root on our users (jail them).</p>
+
+<p>Now lets create a conditional block, using Match, that will apply some options to any user belonging to the <code class="language-plaintext highlighter-rouge">sftponly</code> group:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="c"># lock all users that are part of the</span>
+<span class="c"># `sftponly` group to our ChrootDirectory</span>
+Match Group sftponly
+        ForceCommand internal-sftp <span class="nt">-d</span> /%u
+        PasswordAuthentication <span class="nb">yes
+        </span>ChrootDirectory /home/sftp
+        PermitTunnel no
+        AllowAgentForwarding no
+        AllowTcpForwarding no
+        X11Forwarding no</code></pre></figure>
+
+<p>There’s a few important things to understand about these options.</p>
+
+<ol>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">ForceCommand</a> forces the execution of the command specified, ignoring any commands supplied by the client. By default, when an SSH user logs in, they would land in our <code class="language-plaintext highlighter-rouge">/home/sftp</code> directory, thereby allowing them to see all other users that might exist. While they won’t be able to access those directories, it’s better they don’t see them at all. To fix this, we’re going to force a directory change upon login, by passing the <code class="language-plaintext highlighter-rouge">-d &lt;path&gt;</code> argument, where <code class="language-plaintext highlighter-rouge">/%u</code> is our path relative to our ChrootDirectory, and <code class="language-plaintext highlighter-rouge">%u</code> is a token that represents the username. So on login, the user should automatically be brought to <code class="language-plaintext highlighter-rouge">/home/sftp/batman</code> without knowing it.</p>
+  </li>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">PasswordAuthentication</a> you can set this to either <code class="language-plaintext highlighter-rouge">no</code> or <code class="language-plaintext highlighter-rouge">yes</code> depending if you want to allow SFTP users to authenticate with passwords. The alternative being private/public SSH keys, which are safer, though requires more involvement to manage. I recommend allowing passwords, so long as you are creating users with cryptographically strong passwords.</p>
+  </li>
+  <li>
+    <p><a href="http://manpages.ubuntu.com/manpages/focal/en/man5/sshd_config.5.html" target="_blank">ChrootDirectory</a> specifies the pathname of the directory to <a href="http://manpages.ubuntu.com/manpages/focal/en/man2/chroot.2.html" target="_blank">chroot</a> to after the user authenticates. A requirement of Chroot, is that <code class="language-plaintext highlighter-rouge">root</code> be the owner of the jailed directory.</p>
+  </li>
+</ol>
+
+<p>Lastly, lets set some required permissions — note that <code class="language-plaintext highlighter-rouge">0711</code> grants public execute, but limits read and write to the owner (root), as required by Chroot:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo chown </span>root:root /home/sftp
+<span class="nb">sudo chmod </span>0711 /home/sftp</code></pre></figure>
+
+<h2 id="user-command-script">User command script</h2>
+
+<p>In order to easily manage your FTP users, we’re going to create a command script to do the work for us. This script will enable you to:</p>
+
+<ul>
+  <li>List all existing users — <code class="language-plaintext highlighter-rouge">./path/to/users list</code></li>
+  <li>Add a new user — <code class="language-plaintext highlighter-rouge">./path/to/users add &lt;username&gt; &lt;password&gt;</code></li>
+  <li>Edit an existing user — <code class="language-plaintext highlighter-rouge">./path/to/users edit &lt;username&gt; &lt;password&gt;</code></li>
+  <li>Delete a user — <code class="language-plaintext highlighter-rouge">./path/to/users del &lt;username&gt;</code></li>
+</ul>
+
+<p>This script is written in Perl, and is largely just a series of linux commands. I’ve included links to some helpful documentation:</p>
+
+<ul>
+  <li><a href="https://perldoc.perl.org/DB_File" target="_blank">Perl DB_File</a></li>
+  <li><a href="https://www.man7.org/linux/man-pages/man8/pam_userdb.8.html" target="_blank">PAM_userdb</a></li>
+</ul>
+
+<p>Create a new file — you can include the <code class="language-plaintext highlighter-rouge">.pl</code> extension if you prefer:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash"><span class="nb">sudo </span>nano /etc/vsftps/users</code></pre></figure>
+
+<p>To help facilitate future updates, i’ll include the script as a gist:</p>
+
+<ul>
+  <li>🤖 <a href="https://gist.github.com/phuze/8f66a26767500398d271b42013672536" target="_blank">users.pl</a> — Perl script for managing users in a Berkeley DB within a Linux environment.</li>
+</ul>
+
+<h2 id="remote-control-over-api">Remote control over API</h2>
+
+<p>As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script. You can then build a graphical interface to manage your FTP users.</p>
+
+<p>Here’s a quick example written in PHP, which makes use of <a href="https://github.com/phpseclib/phpseclib" target="_blank">phpseclib</a>:</p>
+
+<figure class="highlight"><pre><code class="language-php" data-lang="php"><span class="kn">namespace</span> <span class="nn">MyApi\Models</span><span class="p">;</span>
+
+<span class="kn">use</span> <span class="no">phpseclib3\Net\SSH2</span><span class="p">;</span>
+<span class="kn">use</span> <span class="nc">phpseclib3\Crypt\PublicKeyLoader</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">FtpModel</span>
+<span class="p">{</span>
+    <span class="k">public</span> <span class="k">function</span> <span class="n">__construct</span><span class="p">()</span> <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">key</span> <span class="o">=</span> <span class="nc">PublicKeyLoader</span><span class="o">::</span><span class="nf">load</span><span class="p">(</span><span class="nb">file_get_contents</span><span class="p">(</span><span class="s1">'/path/to/private/key'</span><span class="p">));</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">SSH2</span><span class="p">(</span><span class="s1">'my.domain.com'</span><span class="p">,</span> <span class="mi">22</span><span class="p">,</span> <span class="mi">30</span><span class="p">);</span>
+        <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="nf">login</span><span class="p">(</span><span class="s1">'username'</span><span class="p">,</span> <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">key</span><span class="p">))</span> <span class="p">{</span>
+          <span class="k">throw</span> <span class="k">new</span> <span class="nc">Exception</span><span class="p">(</span><span class="s1">'Unable to establish SSH connection.'</span><span class="p">);</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+
+    <span class="k">public</span> <span class="k">function</span> <span class="n">addUser</span><span class="p">(</span><span class="kt">string</span> <span class="nv">$username</span><span class="p">,</span> <span class="kt">string</span> <span class="nv">$password</span><span class="p">)</span> <span class="p">{</span>
+        <span class="nv">$this</span><span class="o">-&gt;</span><span class="n">ssh</span><span class="o">-&gt;</span><span class="nb">exec</span><span class="p">(</span><span class="s2">"sudo /etc/vsftpd/users add </span><span class="si">{</span><span class="nv">$username</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nv">$password</span><span class="si">}</span><span class="s2">"</span><span class="p">);</span>
+    <span class="p">}</span>
+<span class="p">}</span></code></pre></figure>
+
+<p>and in Python — using <a href="https://github.com/paramiko/paramiko" target="_blank">Paramiko</a>:</p>
+
+<figure class="highlight"><pre><code class="language-python" data-lang="python"><span class="kn">import</span> <span class="nn">paramiko</span>
+
+<span class="k">def</span> <span class="nf">connect</span><span class="p">():</span>
+    <span class="n">conn</span> <span class="o">=</span> <span class="n">paramiko</span><span class="p">.</span><span class="n">SSHClient</span><span class="p">()</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">set_missing_host_key_policy</span><span class="p">(</span><span class="n">paramiko</span><span class="p">.</span><span class="n">AutoAddPolicy</span><span class="p">())</span>
+    <span class="n">conn</span><span class="p">.</span><span class="n">connect</span><span class="p">(</span><span class="s">'&lt;host&gt;'</span><span class="p">,</span> <span class="n">username</span><span class="o">=</span><span class="s">'&lt;user&gt;'</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">'&lt;pass&gt;'</span><span class="p">,</span> <span class="n">key_filename</span><span class="o">=</span><span class="s">'&lt;/path/to/private/key&gt;'</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">conn</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="n">ssh</span> <span class="o">=</span> <span class="n">connect</span><span class="p">()</span>
+    <span class="n">stdin</span><span class="p">,</span> <span class="n">stdout</span><span class="p">,</span> <span class="n">stderr</span> <span class="o">=</span> <span class="n">ssh</span><span class="p">.</span><span class="n">exec_command</span><span class="p">(</span><span class="s">'sudo /etc/vsftpd/users add {$username} {$password}'</span><span class="p">)</span>
+    <span class="k">print</span> <span class="n">stdout</span><span class="p">.</span><span class="n">readlines</span><span class="p">()</span>
+    <span class="n">ssh</span><span class="p">.</span><span class="n">close</span><span class="p">()</span>
+
+<span class="n">main</span><span class="p">()</span></code></pre></figure>]]></content><author><name>Brendon LaRusic</name><email>brendon@larusic.ca</email></author><category term="Linux" /><category term="Security" /><category term="Ubuntu" /><category term="Ubuntu 20.04" /><category term="FTP" /><category term="FTPS" /><category term="SFTP" /><summary type="html"><![CDATA[]]></summary></entry><entry><title type="html">How to Use Unsupported Jekyll Plugins with GitHub Pages</title><link href="https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages" rel="alternate" type="text/html" title="How to Use Unsupported Jekyll Plugins with GitHub Pages" /><published>2022-02-18T00:00:00-06:00</published><updated>2022-02-18T00:00:00-06:00</updated><id>https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages</id><content type="html" xml:base="https://phuze.dev/using-unsupported-jekyll-plugins-with-github-pages"><![CDATA[<p>A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:</p>
+
+<figure class="highlight"><pre><code class="language-bash" data-lang="bash">github-pages 223 | Error:  Liquid syntax error on line 28: Unknown tag</code></pre></figure>
+
+<p>The reason — all GitHub Page sites are generated using the <code class="language-plaintext highlighter-rouge">--safe</code> option to disable plugins (with the exception of some <a href="https://pages.github.com/versions/" target="_blank">whitelisted plugins</a>). Unfortunately, this means many plugins won’t work if you’re deploying via GitHub Pages.</p>
+
+<p>The way to make use of unsupported plugins, is to build your website locally, instead of relying on GitHub’s automated build and deploy process for Jekyll.</p>
+
+<h2 id="step-1-update-your-gemfile">Step 1: Update your Gemfile</h2>
+
+<p>Update your <code class="language-plaintext highlighter-rouge">Gemfile</code> and use the core <code class="language-plaintext highlighter-rouge">jekyll</code> gem, rather than the <code class="language-plaintext highlighter-rouge">github-pages</code> gem.</p>
+
+<figure class="highlight"><pre><code class="language-ruby" data-lang="ruby"><span class="n">gem</span> <span class="s1">'jekyll'</span></code></pre></figure>
+
+<h2 id="step-2-create-a-github-action-workflow">Step 2: Create a GitHub action workflow</h2>
+
+<p>In your project, create a new workflow file <code class="language-plaintext highlighter-rouge">~/.github/workflows/deploy.yml</code>. This workflow will create a new <code class="language-plaintext highlighter-rouge">gh-pages</code> branch for deployment. Find and change this if you prefer a different branch name:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="na">name</span><span class="pi">:</span> <span class="s">build and deploy</span>
+
+<span class="na">on</span><span class="pi">:</span>
+  <span class="na">push</span><span class="pi">:</span>
+    <span class="na">branches</span><span class="pi">:</span> <span class="pi">[</span> <span class="nv">main</span> <span class="pi">]</span>
+
+<span class="na">jobs</span><span class="pi">:</span>
+  <span class="na">build</span><span class="pi">:</span>
+
+    <span class="na">runs-on</span><span class="pi">:</span> <span class="s">ubuntu-latest</span>
+
+    <span class="na">steps</span><span class="pi">:</span>
+    <span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v2</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🔨 Build the site in the jekyll/builder docker container</span>
+      <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+        <span class="s">docker run \</span>
+          <span class="s">-v ${{ github.workspace }}:/srv/jekyll \</span>
+          <span class="s">-v ${{ github.workspace }}/_site:/srv/jekyll/_site \</span>
+          <span class="s">jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll &amp;&amp; chmod -R 777 /usr/gem &amp;&amp; jekyll build"</span>
+    <span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🧪 Push the site to the gh-pages branch</span>
+      <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+        <span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+        <span class="s">cd ${{ github.workspace }}/_site</span>
+        <span class="s">git init -b gh-pages</span>
+        <span class="s">git config user.name ${{ github.actor }}</span>
+        <span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+        <span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span>
+        <span class="s">git add .</span>
+        <span class="s">git commit -m "🧪 Deployed with commit ${{ github.sha }}"</span>
+        <span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<h3 id="understanding-the-workflow">Understanding the workflow</h3>
+
+<p>Let’s take a closer look at what’s happening in this workflow:</p>
+
+<ul>
+  <li><code class="language-plaintext highlighter-rouge">name</code> — The name of our workflow.</li>
+  <li><code class="language-plaintext highlighter-rouge">on</code> — Defines when the workflow will be triggered. In this example, on push to the <code class="language-plaintext highlighter-rouge">main</code> branch</li>
+  <li><code class="language-plaintext highlighter-rouge">jobs</code> — A set of steps to be executed when our workflow is triggered. You can learn more about jobs from the <a href="https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions#jobs" target="_blank">GitHub Docs</a>.</li>
+  <li><code class="language-plaintext highlighter-rouge">steps</code> — These are the individual steps which make up our job.</li>
+</ul>
+
+<p>Our job begins with a reusable action, <a href="https://github.com/marketplace/actions/checkout" target="_blank">actions/checkout@v2</a>, which clones our project to the workflow’s virtual environment:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">uses</span><span class="pi">:</span> <span class="s">actions/checkout@v2</span></code></pre></figure>
+
+<p>Following that, we’re going to use the <a href="https://hub.docker.com/r/jekyll/builder" target="_blank">jekyll/builder</a> docker image to build our project files:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🔨 Build the site in the jekyll/builder docker container</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">docker run \</span>
+    <span class="s">-v ${{ github.workspace }}:/srv/jekyll \</span>
+    <span class="s">-v ${{ github.workspace }}/_site:/srv/jekyll/_site \</span>
+    <span class="s">jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll &amp;&amp; chmod -R 777 /usr/gem &amp;&amp; jekyll build"</span></code></pre></figure>
+
+<p>It is necessary to grant public read/write permissions to both the <code class="language-plaintext highlighter-rouge">/srv/jekyll</code> and <code class="language-plaintext highlighter-rouge">/usr/gem</code> directories, otherwise you’ll encounter build errors:</p>
+
+<blockquote>
+  <p>There was an error while trying to write to <code class="language-plaintext highlighter-rouge">/srv/jekyll/Gemfile.lock</code>. It is
+likely that you need to grant write permissions for that path.
+Error: Process completed with exit code 23.</p>
+</blockquote>
+
+<p>The last step of our job, is to deploy our Jekyll website to GitHub pages. We accomplish this by pushing our build changes to our deployment branch.</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="pi">-</span> <span class="na">name</span><span class="pi">:</span> <span class="s">🧪 Push the site to the gh-pages branch</span>
+  <span class="na">run</span><span class="pi">:</span> <span class="pi">|</span>
+    <span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+    <span class="s">cd ${{ github.workspace }}/_site</span>
+    <span class="s">git init -b gh-pages</span>
+    <span class="s">git config user.name ${{ github.actor }}</span>
+    <span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+    <span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span>
+    <span class="s">git add .</span>
+    <span class="s">git commit -m "🧪 Deployed with commit ${{ github.sha }}"</span>
+    <span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<p>First we make sure our workspace environment has ownership over our build directory (<code class="language-plaintext highlighter-rouge">/_site</code>), then enter it:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">sudo chown $(whoami):$(whoami) ${{ github.workspace }}/_site</span>
+<span class="s">cd ${{ github.workspace }}/_site</span></code></pre></figure>
+
+<p>Next we initialize a new repository, along with a new <code class="language-plaintext highlighter-rouge">gh-pages</code> branch we’ll use as our deployment branch:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">git init -b gh-pages</span>
+<span class="s">git config user.name ${{ github.actor }}</span>
+<span class="s">git config user.email ${{ github.actor }}@users.noreply.github.com</span>
+<span class="s">git remote add origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git</span></code></pre></figure>
+
+<p>Lastly, we commit our built website files to our <code class="language-plaintext highlighter-rouge">gh-pages</code> branch:</p>
+
+<figure class="highlight"><pre><code class="language-yaml" data-lang="yaml"><span class="s">git add .</span>
+<span class="s">git commit -m "Deploy site built from commit ${{ github.sha }}"</span>
+<span class="s">git push -f -u origin gh-pages</span></code></pre></figure>
+
+<h2 id="step-3-commit-the-workflow">Step 3: Commit the workflow</h2>
+
+<p>Commit and push your workflow file to the <code class="language-plaintext highlighter-rouge">main</code> branch of your repository. This also serves to trigger our workflow action.</p>
+
+<h2 id="step-4-update-repository-settings">Step 4: Update repository settings</h2>
+
+<p>Visit your repository on GitHub, navigate to <code class="language-plaintext highlighter-rouge">Settings &gt; Pages</code>, then update your <code class="language-plaintext highlighter-rouge">Source</code> to your new deployment branch — <code class="language-plaintext highlighter-rouge">gh-pages</code>:</p>
+
+<p><img src="assets/pages-deploy-branch.png" alt="Image with caption" />
+<em>Found at https://github.com/{username}/{repository}/settings/pages</em></p>
+
+<p>After a short wait, your website will be available again, along with any features driven by those unsupported plugins.</p>]]></content><author><name>Brendon LaRusic</name><email>brendon@larusic.ca</email></author><category term="Jekyll" /><category term="Jekyll 4.2.1" /><category term="GitHub Pages" /><summary type="html"><![CDATA[A benefit of Jekyll, is it’s seamless support for automated deployment, for free, to GitHub Pages. However, the more time you invest in your Jekyll-powered website, you’re more likely to encounter unsupported plugins when trying to deploy to GitHub:]]></summary></entry><entry><title type="html">Style Guide</title><link href="https://phuze.dev/style-guide" rel="alternate" type="text/html" title="Style Guide" /><published>2022-02-17T00:00:00-06:00</published><updated>2022-02-17T00:00:00-06:00</updated><id>https://phuze.dev/style-guide</id><content type="html" xml:base="https://phuze.dev/style-guide"><![CDATA[<p>“Come with me, keep quiet, an’ keep yerself covered with that cloak,” said Hagrid. “We won’ take Fang, he won’ like it. . . “Listen, Hagrid, I can’t stay long. . . . I’ve got to be back up at the castle by one o’clock -“ But Hagrid wasn’t listening; he was opening the cabin door and striding off into the night.</p>
+
+<h1 id="headers">Headers</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown"><span class="gh"># H1</span>
+<span class="gu">## H2</span>
+<span class="gu">### H3</span>
+<span class="gu">#### H4</span>
+<span class="gu">##### H5</span>
+<span class="gu">###### H6</span></code></pre></figure>
+
+<h1 id="h1">H1</h1>
+<h2 id="h2">H2</h2>
+<h3 id="h3">H3</h3>
+<h4 id="h4">H4</h4>
+<h5 id="h5">H5</h5>
+<h6 id="h6">H6</h6>
+
+<h1 id="text-formatting">Text formatting</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown"><span class="p">-</span> <span class="gs">**Bold**</span>
+<span class="p">-</span> _Italics_
+<span class="p">-</span> ~~Strikethrough~~
+<span class="p">-</span> <span class="nt">&lt;ins&gt;</span>Underline<span class="nt">&lt;/ins&gt;</span>
+<span class="p">-</span> <span class="nt">&lt;sup&gt;</span>Superscript<span class="nt">&lt;/sup&gt;</span>
+<span class="p">-</span> <span class="nt">&lt;sub&gt;</span>Subscript<span class="nt">&lt;/sub&gt;</span>
+<span class="p">-</span> Abbreviation: <span class="nt">&lt;abbr</span> <span class="na">title=</span><span class="s">"HyperText Markup Language"</span><span class="nt">&gt;</span>HTML<span class="nt">&lt;/abbr&gt;</span>
+<span class="p">-</span> Citation: <span class="nt">&lt;cite&gt;</span><span class="ni">&amp;mdash;</span> Bill<span class="nt">&lt;/cite&gt;</span></code></pre></figure>
+
+<ul>
+  <li><strong>Bold</strong></li>
+  <li><em>Italics</em></li>
+  <li><del>Strikethrough</del></li>
+  <li><ins>Underline</ins></li>
+  <li><sup>Superscript</sup></li>
+  <li><sub>Subscript</sub></li>
+  <li>Abbreviation: <abbr title="HyperText Markup Language">HTML</abbr></li>
+  <li>Citation: <cite>— Bill</cite></li>
+</ul>
+
+<h1 id="lists">Lists</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown"><span class="p">1.</span> Ordered list item 1
+<span class="p">2.</span> Ordered list item 2
+<span class="p">3.</span> Ordered list item 3
+<span class="p">
+*</span> Unordered list item 1
+<span class="p">*</span> Unordered list item 2
+<span class="p">*</span> Unordered list item 3</code></pre></figure>
+
+<ol>
+  <li>Ordered list item 1</li>
+  <li>Ordered list item 2</li>
+  <li>Ordered list item 3</li>
+</ol>
+
+<ul>
+  <li>Unordered list item 1</li>
+  <li>Unordered list item 2</li>
+  <li>Unordered list item 3</li>
+</ul>
+
+<h1 id="links">Links</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown">Check out this example project on <span class="p">[</span><span class="nv">GitHub</span><span class="p">](</span><span class="sx">https://github.com/</span><span class="p">)</span>.</code></pre></figure>
+
+<p>Check out this example project on <a href="https://github.com/">GitHub</a>.</p>
+
+<h1 id="images">Images</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown"><span class="p">![</span><span class="nv">Image with caption</span><span class="p">](</span><span class="sx">https://www.fillmurray.com/g/600/400</span> <span class="nn">"Image with caption"</span><span class="p">)</span>
+<span class="ge">_This is an image with a caption_</span></code></pre></figure>
+
+<p><img src="https://www.fillmurray.com/g/600/400" alt="Image with caption" title="Image with caption" />
+<em>This is an image with a caption</em></p>
+
+<h1 id="code-and-syntax-highlighting">Code and Syntax Highlighting</h1>
+<p>Use back-ticks for <code class="language-plaintext highlighter-rouge">inline code</code>. Multi-line code snippets are supported too through <a href="https://github.com/mvdbos/kramdown-with-pygments">Pygments</a>.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><span class="c1">// Sample javascript code</span>
+<span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">JavaScript syntax highlighting</span><span class="dl">"</span><span class="p">;</span>
+<span class="nx">alert</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span></code></pre></figure>
+
+<p>Adding <code class="language-plaintext highlighter-rouge">linenos</code> to the Pygments tag enables line numbers.</p>
+
+<figure class="highlight"><pre><code class="language-js" data-lang="js"><table class="rouge-table"><tbody><tr><td class="gutter gl"><pre class="lineno">1
+2
+3
+</pre></td><td class="code"><pre><span class="c1">// Sample javascript code</span>
+<span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="dl">"</span><span class="s2">JavaScript syntax highlighting</span><span class="dl">"</span><span class="p">;</span>
+<span class="nx">alert</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span>
+</pre></td></tr></tbody></table></code></pre></figure>
+
+<h1 id="blockquotes">Blockquotes</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown"><span class="gt">&gt; "Keep quiet, an' keep yerself covered with that cloak," said Hagrid.</span></code></pre></figure>
+
+<blockquote>
+  <p>“Keep quiet, an’ keep yerself covered with that cloak,” said Hagrid.</p>
+</blockquote>
+
+<h1 id="horizontal-rule--line-break">Horizontal Rule &amp; Line Break</h1>
+
+<figure class="highlight"><pre><code class="language-markdown" data-lang="markdown">Use <span class="sb">`&lt;hr&gt;`</span> for horizontal rules
+
+<span class="nt">&lt;hr&gt;</span>
+
+and <span class="sb">`&lt;br&gt;`</span> for line breaks.
+
+<span class="nt">&lt;br&gt;</span></code></pre></figure>
+
+<p>Use <code class="language-plaintext highlighter-rouge">&lt;hr&gt;</code> for horizontal rules</p>
+
+<hr />
+
+<p>and <code class="language-plaintext highlighter-rouge">&lt;br&gt;</code> for line breaks.</p>
+
+<p><br /></p>
+
+<p><em>The end</em></p>]]></content><author><name>Brendon LaRusic</name><email>brendon@larusic.ca</email></author><summary type="html"><![CDATA[“Come with me, keep quiet, an’ keep yerself covered with that cloak,” said Hagrid. “We won’ take Fang, he won’ like it. . . “Listen, Hagrid, I can’t stay long. . . . I’ve got to be back up at the castle by one o’clock -“ But Hagrid wasn’t listening; he was opening the cabin door and striding off into the night.]]></summary></entry></feed>
