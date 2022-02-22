@@ -434,8 +434,6 @@ To help facilitate future updates, i'll include the script as a gist:
 
 - 🤖 [users.pl](https://gist.github.com/phuze/8f66a26767500398d271b42013672536){:target="_blank"} — Perl script for managing users in a Berkeley DB within a Linux environment.
 
-<!--{% gist 8f66a26767500398d271b42013672536 %}-->
-
 ## Remote control over API
 
 As a final consideration, you could further integrate your FTP control system, by building an API. This API would SSH into your FTP server, and execute commands using the command script. You can then build a graphical interface to manage your FTP users.
