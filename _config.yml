@@ -27,7 +27,6 @@ plugins:
   - jekyll-seo-tag
   - jekyll-spaceship
   - jekyll-toc
-  - jekyll-gist
   - jemoji
   - jekyll-sitemap
 

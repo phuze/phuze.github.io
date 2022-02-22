@@ -12,7 +12,6 @@ gem 'jekyll-seo-tag'
 gem 'jekyll-sitemap'
 gem 'jekyll-spaceship'
 gem 'jekyll-toc'
-gem 'jekyll-gist'
 gem 'jemoji'
 
 # Install gem for Windows
