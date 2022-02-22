@@ -51,19 +51,20 @@ footer {
     margin: 0;
     padding: 0;
     text-align: center;
-    font-size: 1.3rem;
+    font-size: 1.4rem;
 
     li {
-      @include transition(all .2s ease-out);
-      color: var(--primary);
+      @include transition(opacity .2s ease-out);
       display: inline-block;
+      color: var(--primary);
       opacity: .6;
       padding: 0px 1rem 0 0;
-  
+      line-height: 1;
+
       &:last-child {
         padding-right: 0;
       }
-  
+
       &:hover,
       &:focus {
         opacity: 1;
@@ -74,7 +75,7 @@ footer {
       }
     }
 
-    .fa, .fas, .fab {
+    .fa, .fas, .far, .fad, .fal, .fat, .fab, .fal {
       vertical-align: center;
     }
   }

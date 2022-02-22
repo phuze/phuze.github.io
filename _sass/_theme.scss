@@ -3,22 +3,21 @@
 }
 
 #theme-toggle svg {
-	height: 18px;
+	height: 20px;
+	margin: 0 0 0 0.5rem;
 }
 
 button#theme-toggle {
     color: var(--primary);
-	font-size: 26px;
-	margin: auto 4px;
-    cursor: pointer;
-    padding: 0;
-	font: inherit;
 	background: 0 0;
 	border: 0;
+	margin: 0;
+    padding: 0;
+	font: inherit;
+	cursor: pointer;
 }
 
 body.dark #moon {
-	vertical-align: middle;
 	display: none;
 }
 
