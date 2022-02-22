@@ -15,10 +15,10 @@ footer {
 
 .nav {
   position: fixed;
-  width: 100%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: center;
+  width: 100%;
   box-shadow: 0 2px 2px -2px var(--shadow);
   background: var(--nav-bg);
   min-height: 80px;
@@ -27,8 +27,9 @@ footer {
   &-container {
     position: relative;
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    margin: 1rem auto;
+    //margin: 1rem auto;
     max-width: 800px;
     width: 80%;
     z-index: 3;
@@ -52,14 +53,30 @@ footer {
     padding: 0;
     text-align: center;
     font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
     li {
       @include transition(opacity .2s ease-out);
-      display: inline-block;
       color: var(--primary);
       opacity: .6;
-      padding: 0px 1rem 0 0;
-      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      a {
+        padding: 0;
+        margin: 0;
+        height: 22px;
+
+        svg {
+          padding: 0;
+          margin: 0;
+          line-height: 1;
+          height: 22px;
+        }
+      }
 
       &:last-child {
         padding-right: 0;
