@@ -20,6 +20,7 @@ Deciding which protocols work best for you, depends largely on your project. The
 
 Let's explore some of the key differences between each protocol.
 
+<div class="table-wrap" markdown="block">
 | | :FTP: | :FTPS: | :SFTP: |
 | - | - | - | - |
 | Command Port | 21 | 990 | 22 |
@@ -28,6 +29,8 @@ Let's explore some of the key differences between each protocol.
 | Connections | : At least 2: one port to issue commands and a separate port for data : || : Only 1 is required (commands and data use the same connection) : |
 | Pros | : Anonymous FTP access in browser, and slightly faster due to having no encryption overhead : | : Widely known and supported, with better support for server-to-server file transfers : | : Commands and data are always encrypted, and is backed by solid standards : |
 | Cons | : Connection details and data is transmitted in clear text : | : Requires a secondary DATA channel, which makes it harder to use behind firewalls and NATs : | : Limited server-to-server options, dependent on environment and application : |
+
+</div>
 
 {::nomarkdown}
 <div class="post-notice"><div class="post-notice-icon"><svg aria-hidden="true" focusable="false" data-prefix="fad" data-icon="info-circle" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" class="fa-fw fa-2x svg-inline--fa fa-info-circle fa-w-16"><g class="fa-group"><path fill="#98b3c6" d="M256 8C119 8 8 119.08 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 110a42 42 0 1 1-42 42 42 42 0 0 1 42-42zm56 254a12 12 0 0 1-12 12h-88a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h12v-64h-12a12 12 0 0 1-12-12v-24a12 12 0 0 1 12-12h64a12 12 0 0 1 12 12v100h12a12 12 0 0 1 12 12z" class="fa-secondary"></path><path fill="#305977" d="M256 202a42 42 0 1 0-42-42 42 42 0 0 0 42 42zm44 134h-12V236a12 12 0 0 0-12-12h-64a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h12v64h-12a12 12 0 0 0-12 12v24a12 12 0 0 0 12 12h88a12 12 0 0 0 12-12v-24a12 12 0 0 0-12-12z" class="fa-primary"></path></g></svg></div><div class="post-notice-content">Tip: To use FTPS in <a href="https://filezilla-project.org/" target="_blank">FileZilla</a>, set the Encryption option to: <em>Require explicit FTP over TLS</em>.</div></div>

@@ -18,7 +18,7 @@ footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 100vw;
+  width: 100%;
   box-shadow: 0 2px 2px -2px var(--shadow);
   background: var(--nav-bg);
   min-height: 80px;
@@ -36,14 +36,22 @@ footer {
     align-items: center;
     justify-content: space-between;
     max-width: 800px;
-    width: 80%;
+    width: 100%;
     z-index: 3;
     gap: 0.8rem;
+
+    .tocbox {
+      order: 3;
+    }
 
     @media (min-width: 600px) {
       gap: 0;
       flex-direction: row;
       min-width: 130px;
+
+      .tocbox {
+        order: 0;
+      }
     }
   }
 
