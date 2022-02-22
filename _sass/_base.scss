@@ -52,7 +52,11 @@ blockquote {
   background: var(--block-bg);
 
   p {
-    padding: 1rem 0;
+    padding: 1rem;
+
+    @media (min-width: 600px) {
+      padding: 1rem 0;
+    }
   }
 
   p:last-child {
